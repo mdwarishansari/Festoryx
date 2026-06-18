@@ -21,6 +21,6 @@ export const registrationSchema = z.object({
   teamMembers: z.array(teamMemberSchema).optional(),
   paymentReference: z.string().optional(),
   notes: z.string().optional(),
-});
+}).passthrough();
 
 export type RegistrationFormData = z.infer<typeof registrationSchema>;

@@ -7,7 +7,8 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
+  const isSuperAdminLogin = req.nextUrl.pathname === "/superadmin/login";
+  if (isProtectedRoute(req) && !isSuperAdminLogin) {
     await auth.protect();
   }
 });

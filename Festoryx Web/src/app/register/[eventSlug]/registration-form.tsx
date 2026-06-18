@@ -29,6 +29,7 @@ interface FormFieldConfig {
   type: string;
   isRequired: boolean;
   isVisible: boolean;
+  placeholder?: string | null;
 }
 
 interface RegistrationFormClientProps {
@@ -139,7 +140,7 @@ export function RegistrationFormClient({ event, settings, formFields }: Registra
     setValue,
     formState: { errors },
     watch,
-  } = useForm<RegistrationFormData>({
+  } = useForm<RegistrationFormData & Record<string, any>>({
     resolver: zodResolver(schema),
     defaultValues: {
       participantName: "",
@@ -165,13 +166,9 @@ export function RegistrationFormClient({ event, settings, formFields }: Registra
 
   async function handleNext() {
     if (step === 1) {
-      const fieldsToTrigger = [];
-      if (nameField?.isVisible) fieldsToTrigger.push("participantName");
-      if (emailField?.isVisible) fieldsToTrigger.push("email");
-      if (phoneField?.isVisible) fieldsToTrigger.push("phone");
-      if (collegeField?.isVisible) fieldsToTrigger.push("collegeName");
-      if (deptField?.isVisible) fieldsToTrigger.push("department");
-      if (yearField?.isVisible) fieldsToTrigger.push("yearOrSemester");
+      const fieldsToTrigger = formFields
+        .filter((f) => f.isVisible)
+        .map((f) => f.fieldName);
 
       const isValid = await trigger(fieldsToTrigger as any);
       if (!isValid) return;
@@ -511,6 +508,38 @@ export function RegistrationFormClient({ event, settings, formFields }: Registra
                   )}
                 </>
               )}
+
+              {formFields
+                .filter(
+                  (field) =>
+                    ![
+                      "participantName",
+                      "email",
+                      "phone",
+                      "collegeName",
+                      "department",
+                      "yearOrSemester",
+                    ].includes(field.fieldName)
+                )
+                .map((field) => {
+                  if (!field.isVisible) return null;
+                  return (
+                    <div key={field.id} className="sm:col-span-2">
+                      <label className="block text-sm font-medium text-gray-300">
+                        {field.label} {field.isRequired && <span className="text-rose-400">*</span>}
+                      </label>
+                      <input
+                        type={field.type === "email" ? "email" : field.type === "tel" ? "tel" : "text"}
+                        {...register(field.fieldName)}
+                        className="mt-2 block w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-gray-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
+                        placeholder={field.placeholder || `Enter ${field.label}`}
+                      />
+                      {(errors as any)[field.fieldName] && (
+                        <p className="mt-1 text-xs text-rose-400">{(errors as any)[field.fieldName]?.message}</p>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}

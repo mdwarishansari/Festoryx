@@ -42,6 +42,14 @@ export const eventSchema = z.object({
   sortOrder: z.coerce.number().default(0),
   visibility: z.enum(["PUBLIC", "PRIVATE", "UNLISTED"]).default("PUBLIC"),
   modules: z.array(z.string()).optional(),
+  formFields: z.array(z.object({
+    fieldName: z.string(),
+    label: z.string(),
+    type: z.string(),
+    isRequired: z.boolean(),
+    isVisible: z.boolean(),
+    sortOrder: z.coerce.number().optional().default(0),
+  })).optional(),
 });
 
 export type EventFormData = z.infer<typeof eventSchema>;

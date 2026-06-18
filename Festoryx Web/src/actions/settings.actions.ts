@@ -93,16 +93,20 @@ export async function updateSettings(data: Record<string, unknown>): Promise<Act
       youtube: youtubeUrl || "",
     };
 
-    await prisma.$transaction([
-      prisma.organization.update({
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Unauthorized");
+
+    await prisma.$transaction(async (tx) => {
+      await tx.organization.update({
         where: { id: orgId },
         data: {
           name: siteName,
           logoUrl: logoUrl || null,
           description: aboutContent || "",
         },
-      }),
-      prisma.orgSettings.upsert({
+      });
+
+      await tx.orgSettings.upsert({
         where: { organizationId: orgId },
         update: {
           contactEmail: contactEmail || null,
@@ -119,8 +123,19 @@ export async function updateSettings(data: Record<string, unknown>): Promise<Act
           paymentInstructions: paymentInstructions || null,
           socialLinks,
         },
-      }),
-    ]);
+      });
+
+      // Write Audit Log
+      await tx.auditLog.create({
+        data: {
+          organizationId: orgId,
+          userId: user.id,
+          action: "SETTINGS_UPDATED",
+          entityType: "settings",
+          details: { siteName },
+        },
+      });
+    });
 
     revalidatePath("/");
     revalidatePath("/dashboard/settings");

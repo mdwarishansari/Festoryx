@@ -104,6 +104,7 @@ export default async function AdminEventsListPage() {
                           isRegistrationOpen={event.isRegistrationOpen}
                           eventName={event.name}
                           registrationsCount={event._count.registrations}
+                          hasQuizArena={event.modules?.some((m: any) => m.module === "QUIZ_ARENA" && m.enabled)}
                         />
                       </td>
                     </tr>

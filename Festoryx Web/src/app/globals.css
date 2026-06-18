@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   /* Colors */
   --color-primary: #9382ff;
   --color-primary-foreground: #030014;
@@ -31,7 +31,7 @@
 
   /* Font families */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
 
   /* Custom Spacing */
   --spacing-15: 3.75rem;

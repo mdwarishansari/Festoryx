@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { Organization } from "@prisma/client";
+import { sendEmail, getOrganizationApprovedEmail, getOrganizationRejectedEmail } from "@/lib/email";
 
 export async function createOrganization(data: {
   name: string;
@@ -20,6 +21,14 @@ export async function createOrganization(data: {
 }): Promise<Organization> {
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
+
+  // Enforce V1 Ownership Rule: one Clerk user may own only one organization
+  const existingMember = await prisma.organizationMember.findFirst({
+    where: { userId: user.id },
+  });
+  if (existingMember) {
+    throw new Error("You already belong to or own an organization.");
+  }
 
   // Generate unique slug
   const baseSlug = data.name
@@ -211,7 +220,7 @@ export async function approveOrganization(orgId: string): Promise<void> {
   const user = await getCurrentUser();
   if (!user || !isSuperAdmin(user)) throw new Error("Unauthorized");
 
-  await prisma.organization.update({
+  const org = await prisma.organization.update({
     where: { id: orgId },
     data: { status: "ACTIVE", statusNote: null },
   });
@@ -224,6 +233,31 @@ export async function approveOrganization(orgId: string): Promise<void> {
     },
   });
 
+  // Fetch owner member's details
+  const ownerMember = await prisma.organizationMember.findFirst({
+    where: { organizationId: orgId, role: "OWNER" },
+    include: { user: true },
+  });
+
+  const recipientEmail = ownerMember?.user.email || org.email;
+  const adminName = ownerMember?.user.name || "Organizer";
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard`;
+
+  try {
+    const { subject, html } = await getOrganizationApprovedEmail({
+      adminName,
+      organizationName: org.name,
+      dashboardUrl,
+    });
+    await sendEmail({
+      to: recipientEmail,
+      subject,
+      html,
+    });
+  } catch (emailError) {
+    console.error("Failed to send organization approved email:", emailError);
+  }
+
   revalidatePath("/admin/organizations");
 }
 
@@ -231,7 +265,7 @@ export async function rejectOrganization(orgId: string, note: string): Promise<v
   const user = await getCurrentUser();
   if (!user || !isSuperAdmin(user)) throw new Error("Unauthorized");
 
-  await prisma.organization.update({
+  const org = await prisma.organization.update({
     where: { id: orgId },
     data: { status: "REJECTED", statusNote: note },
   });
@@ -244,6 +278,30 @@ export async function rejectOrganization(orgId: string, note: string): Promise<v
       details: { note },
     },
   });
+
+  // Fetch owner member's details
+  const ownerMember = await prisma.organizationMember.findFirst({
+    where: { organizationId: orgId, role: "OWNER" },
+    include: { user: true },
+  });
+
+  const recipientEmail = ownerMember?.user.email || org.email;
+  const adminName = ownerMember?.user.name || "Organizer";
+
+  try {
+    const { subject, html } = await getOrganizationRejectedEmail({
+      adminName,
+      organizationName: org.name,
+      reason: note,
+    });
+    await sendEmail({
+      to: recipientEmail,
+      subject,
+      html,
+    });
+  } catch (emailError) {
+    console.error("Failed to send organization rejected email:", emailError);
+  }
 
   revalidatePath("/admin/organizations");
 }
@@ -288,4 +346,31 @@ export async function requestChanges(orgId: string, note: string): Promise<Organ
 
   revalidatePath("/admin/organizations");
   return org;
+}
+
+export async function deleteOrganization(orgId: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user || !isSuperAdmin(user)) throw new Error("Unauthorized");
+
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+  });
+
+  if (!org) throw new Error("Organization not found");
+
+  await prisma.organization.delete({
+    where: { id: orgId },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId: user.id,
+      action: "DELETE_ORGANIZATION",
+      details: { organizationName: org.name, orgId },
+    },
+  });
+
+  revalidatePath("/superadmin/organizations");
+  revalidatePath("/superadmin");
+  revalidatePath("/admin/organizations");
 }

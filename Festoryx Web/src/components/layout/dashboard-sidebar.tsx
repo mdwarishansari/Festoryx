@@ -20,6 +20,8 @@ import {
   Send,
   Flame,
   Info,
+  BarChart3,
+  FolderKanban,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,10 +36,12 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Events", href: "/dashboard/events", icon: Calendar },
   { label: "Registrations", href: "/dashboard/registrations", icon: Users },
-  { label: "Winners", href: "/dashboard/winners", icon: Trophy },
+  { label: "Submissions", href: "/dashboard/submissions", icon: FolderKanban },
   { label: "Payments", href: "/dashboard/payments", icon: CreditCard },
+  { label: "Winners", href: "/dashboard/winners", icon: Trophy },
   { label: "Messages", href: "/dashboard/messages", icon: Mail },
   { label: "Broadcast Email", href: "/dashboard/broadcast", icon: Send },
+  { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { label: "About Cards", href: "/dashboard/about", icon: Info },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
   { label: "Quiz Arena", href: "http://localhost:3002/admin", icon: Flame, isExternal: true },

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
+import { CosmicBackground } from "@/components/ui/cosmic-background";
 import Link from "next/link";
 import { Calendar, Globe, Mail, Phone, ExternalLink } from "lucide-react";
 
@@ -30,9 +31,8 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#030014] text-[#f4f0ff]">
-      {/* Background Star field effect */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))] -z-10" />
+    <div className="min-h-screen bg-transparent text-[#f4f0ff] font-sans relative">
+      <CosmicBackground />
 
       <div className="max-w-5xl mx-auto px-4 py-16 space-y-12">
         {/* Back Link */}

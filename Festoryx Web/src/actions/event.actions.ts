@@ -7,7 +7,7 @@ import type { ActionResponse } from "@/types";
 import type { Event, EventVisibility, ModuleType } from "@prisma/client";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 import { getPublicIdFromUrl, serializePrisma } from "@/lib/utils";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
 
 async function getOrgIdForCurrentUser(): Promise<string> {
   const user = await getCurrentUser();
@@ -23,6 +23,8 @@ async function getOrgIdForCurrentUser(): Promise<string> {
 
 export async function createEvent(data: EventFormData): Promise<ActionResponse<Event>> {
   try {
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Unauthorized");
     const orgId = await getOrgIdForCurrentUser();
 
     const parsed = eventSchema.safeParse(data);
@@ -38,8 +40,8 @@ export async function createEvent(data: EventFormData): Promise<ActionResponse<E
       return { success: false, error: "An event with this slug already exists" };
     }
 
-    // Extract modules from formData
-    const { modules, ...eventData } = parsed.data;
+    // Extract modules and formFields from formData
+    const { modules, formFields, ...eventData } = parsed.data;
 
     const event = await prisma.$transaction(async (tx) => {
       // Create Event
@@ -63,6 +65,34 @@ export async function createEvent(data: EventFormData): Promise<ActionResponse<E
         });
       }
 
+      // Save Form Field Configuration Toggles
+      if (formFields && formFields.length > 0) {
+        await tx.formFieldConfig.createMany({
+          data: formFields.map((field, index) => ({
+            eventId: evt.id,
+            organizationId: orgId,
+            fieldName: field.fieldName,
+            label: field.label,
+            type: field.type,
+            isRequired: field.isRequired,
+            isVisible: field.isVisible,
+            sortOrder: field.sortOrder ?? index,
+          })),
+        });
+      }
+
+      // Write Audit Log
+      await tx.auditLog.create({
+        data: {
+          organizationId: orgId,
+          userId: user.id,
+          action: "EVENT_CREATED",
+          entityType: "event",
+          entityId: evt.id,
+          details: { name: evt.name, slug: evt.slug },
+        },
+      });
+
       return evt;
     });
 
@@ -77,7 +107,11 @@ export async function createEvent(data: EventFormData): Promise<ActionResponse<E
 
 export async function updateEvent(id: string, data: EventFormData): Promise<ActionResponse<Event>> {
   try {
-    const orgId = await getOrgIdForCurrentUser();
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const isSuper = isSuperAdmin(user);
+    const orgId = !isSuper ? await getOrgIdForCurrentUser() : "";
 
     const parsed = eventSchema.safeParse(data);
     if (!parsed.success) {
@@ -86,7 +120,7 @@ export async function updateEvent(id: string, data: EventFormData): Promise<Acti
 
     // Verify ownership
     const currentEvent = await prisma.event.findFirst({
-      where: { id, organizationId: orgId },
+      where: isSuper ? { id } : { id, organizationId: orgId },
       select: { bannerUrl: true },
     });
     if (!currentEvent) {
@@ -119,7 +153,7 @@ export async function updateEvent(id: string, data: EventFormData): Promise<Acti
       }
     }
 
-    const { modules, ...eventData } = parsed.data;
+    const { modules, formFields, ...eventData } = parsed.data;
 
     const event = await prisma.$transaction(async (tx) => {
       const evt = await tx.event.update({
@@ -146,6 +180,38 @@ export async function updateEvent(id: string, data: EventFormData): Promise<Acti
         });
       }
 
+      // Update Form Fields: delete existing and create new ones
+      await tx.formFieldConfig.deleteMany({
+        where: { eventId: id },
+      });
+
+      if (formFields && formFields.length > 0) {
+        await tx.formFieldConfig.createMany({
+          data: formFields.map((field, index) => ({
+            eventId: id,
+            organizationId: evt.organizationId,
+            fieldName: field.fieldName,
+            label: field.label,
+            type: field.type,
+            isRequired: field.isRequired,
+            isVisible: field.isVisible,
+            sortOrder: field.sortOrder ?? index,
+          })),
+        });
+      }
+
+      // Write Audit Log
+      await tx.auditLog.create({
+        data: {
+          organizationId: evt.organizationId,
+          userId: user.id,
+          action: "EVENT_UPDATED",
+          entityType: "event",
+          entityId: evt.id,
+          details: { name: evt.name, slug: evt.slug },
+        },
+      });
+
       return evt;
     });
 
@@ -162,12 +228,16 @@ export async function updateEvent(id: string, data: EventFormData): Promise<Acti
 
 export async function deleteEvent(id: string): Promise<ActionResponse> {
   try {
-    const orgId = await getOrgIdForCurrentUser();
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const isSuper = isSuperAdmin(user);
+    const orgId = !isSuper ? await getOrgIdForCurrentUser() : "";
 
     // Verify ownership
     const existing = await prisma.event.findFirst({
-      where: { id, organizationId: orgId },
-      select: { bannerUrl: true },
+      where: isSuper ? { id } : { id, organizationId: orgId },
+      select: { bannerUrl: true, name: true, slug: true, organizationId: true },
     });
     if (!existing) {
       return { success: false, error: "Event not found or unauthorized" };
@@ -196,7 +266,23 @@ export async function deleteEvent(id: string): Promise<ActionResponse> {
       }
     }
 
-    await prisma.event.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      // Write audit log
+      await tx.auditLog.create({
+        data: {
+          organizationId: existing.organizationId,
+          userId: user.id,
+          action: "EVENT_DELETED",
+          entityType: "event",
+          entityId: id,
+          details: { name: existing.name, slug: existing.slug },
+        },
+      });
+
+      // Delete event
+      await tx.event.delete({ where: { id } });
+    });
+
     revalidatePath("/dashboard/events");
     revalidatePath("/events");
     return { success: true };
@@ -208,8 +294,15 @@ export async function deleteEvent(id: string): Promise<ActionResponse> {
 
 export async function toggleEventPublish(id: string): Promise<ActionResponse> {
   try {
-    const orgId = await getOrgIdForCurrentUser();
-    const event = await prisma.event.findFirst({ where: { id, organizationId: orgId } });
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const isSuper = isSuperAdmin(user);
+    const orgId = !isSuper ? await getOrgIdForCurrentUser() : "";
+
+    const event = await prisma.event.findFirst({
+      where: isSuper ? { id } : { id, organizationId: orgId }
+    });
     if (!event) return { success: false, error: "Event not found or unauthorized" };
 
     await prisma.event.update({
@@ -228,8 +321,15 @@ export async function toggleEventPublish(id: string): Promise<ActionResponse> {
 
 export async function toggleEventRegistration(id: string): Promise<ActionResponse> {
   try {
-    const orgId = await getOrgIdForCurrentUser();
-    const event = await prisma.event.findFirst({ where: { id, organizationId: orgId } });
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const isSuper = isSuperAdmin(user);
+    const orgId = !isSuper ? await getOrgIdForCurrentUser() : "";
+
+    const event = await prisma.event.findFirst({
+      where: isSuper ? { id } : { id, organizationId: orgId }
+    });
     if (!event) return { success: false, error: "Event not found or unauthorized" };
 
     await prisma.event.update({
@@ -316,12 +416,18 @@ export async function getEventBySlug(slug: string) {
 
 export async function getEventById(id: string) {
   try {
-    const orgId = await getOrgIdForCurrentUser();
+    const user = await getCurrentUser();
+    if (!user) return null;
+
+    const isSuper = isSuperAdmin(user);
+    const orgId = !isSuper ? await getOrgIdForCurrentUser() : "";
+
     return await prisma.event.findFirst({
-      where: { id, organizationId: orgId },
+      where: isSuper ? { id } : { id, organizationId: orgId },
       include: {
         _count: { select: { registrations: true } },
         modules: true,
+        formFields: true,
       },
     });
   } catch (error) {

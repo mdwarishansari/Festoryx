@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { ActionResponse } from "@/types";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
 
 export async function setEventWinners(
   eventId: string,
@@ -13,6 +14,29 @@ export async function setEventWinners(
   try {
     if (!eventId) {
       return { success: false, error: "Event ID is required." };
+    }
+
+    const user = await getCurrentUser();
+    if (!user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+    });
+
+    if (!event) {
+      return { success: false, error: "Event not found" };
+    }
+
+    const isSuper = isSuperAdmin(user);
+    if (!isSuper) {
+      const member = await prisma.organizationMember.findFirst({
+        where: { userId: user.id, organizationId: event.organizationId },
+      });
+      if (!member) {
+        return { success: false, error: "Unauthorized" };
+      }
     }
 
     await prisma.event.update({
@@ -29,10 +53,6 @@ export async function setEventWinners(
     revalidatePath("/");
     
     // Also revalidate detail pages if they exist
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-      select: { slug: true }
-    });
     if (event?.slug) {
       revalidatePath(`/events/${event.slug}`);
     }

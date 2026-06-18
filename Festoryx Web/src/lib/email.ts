@@ -547,3 +547,143 @@ export async function getBroadcastEmailHtml(
 
   return wrapEmailTemplate(contentHtml, "#4F46E5", branding);
 }
+
+export async function getOrganizationApprovedEmail(params: {
+  adminName: string;
+  organizationName: string;
+  dashboardUrl: string;
+}): Promise<{ subject: string; html: string }> {
+  const { adminName, organizationName, dashboardUrl } = params;
+  const branding = await getEmailBranding();
+
+  const contentHtml = `
+    <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
+      Organization Approved! 🎉
+    </h2>
+    <p style="color:#94a3b8;font-size:15px;margin:0 0 24px;line-height:1.7;">
+      Hi <strong style="color:#e0e7ff;">${adminName}</strong>, your organization <strong style="color:#6ee7b7;">${organizationName}</strong> has been approved by our team.
+    </p>
+
+    <p style="color:#94a3b8;font-size:14px;line-height:1.7;margin-bottom:28px;">
+      You can now log in to the organizer dashboard to create events, manage registrations, track payments, and publish live competition pages.
+    </p>
+
+    <!-- Action Button -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:28px;">
+      <tr>
+        <td align="center">
+          <a href="${dashboardUrl}" target="_blank" style="background:#4F46E5;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;padding:12px 30px;border-radius:10px;display:inline-block;letter-spacing:1px;text-transform:uppercase;">
+            Go to Organizer Dashboard
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <p style="color:#64748b;font-size:13px;line-height:1.7;margin:0;">
+      Thank you for choosing Festoryx. We look forward to seeing your upcoming events! 🚀
+    </p>
+  `;
+
+  return {
+    subject: `Organization Approved – ${organizationName} | ${branding.siteName}`,
+    html: wrapEmailTemplate(contentHtml, "#059669", branding),
+  };
+}
+
+export async function getOrganizationRejectedEmail(params: {
+  adminName: string;
+  organizationName: string;
+  reason: string;
+}): Promise<{ subject: string; html: string }> {
+  const { adminName, organizationName, reason } = params;
+  const branding = await getEmailBranding();
+
+  const contentHtml = `
+    <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
+      Organization Application Update
+    </h2>
+    <p style="color:#94a3b8;font-size:15px;margin:0 0 24px;line-height:1.7;">
+      Hi <strong style="color:#e0e7ff;">${adminName}</strong>, thank you for applying to host events on Festoryx.
+    </p>
+
+    <p style="color:#94a3b8;font-size:14px;line-height:1.7;margin-bottom:20px;">
+      Unfortunately, we could not verify or approve your application for <strong style="color:#fca5a5;">${organizationName}</strong> at this time.
+    </p>
+
+    <!-- Rejection Reason -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1a0a0a;border:1px solid rgba(127,29,29,0.5);border-radius:12px;margin-bottom:24px;">
+      <tr>
+        <td style="padding:18px 20px;">
+          <p style="color:#ef4444;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;font-weight:700;">Reason for Rejection</p>
+          <p style="color:#fca5a5;font-size:14px;margin:0;line-height:1.7;">${reason}</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="color:#64748b;font-size:13px;line-height:1.7;margin:0;">
+      If you would like to clarify details or apply with a different profile, please contact our support team at
+      <a href="mailto:${branding.contactEmail}" style="color:#818cf8;text-decoration:none;">${branding.contactEmail}</a>.
+    </p>
+  `;
+
+  return {
+    subject: `Organization Status Update – ${organizationName} | ${branding.siteName}`,
+    html: wrapEmailTemplate(contentHtml, "#dc2626", branding),
+  };
+}
+
+export async function getEventReminderEmail(params: {
+  participantName: string;
+  eventName: string;
+  registrationId: string;
+  eventDate: string;
+  venue?: string;
+}): Promise<{ subject: string; html: string }> {
+  const { participantName, eventName, registrationId, eventDate, venue } = params;
+  const branding = await getEmailBranding();
+
+  const contentHtml = `
+    <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
+      Upcoming Event Reminder 🔔
+    </h2>
+    <p style="color:#94a3b8;font-size:15px;margin:0 0 24px;line-height:1.7;">
+      Hi <strong style="color:#e0e7ff;">${participantName}</strong>, this is a friendly reminder that the event <strong style="color:#a5b4fc;">${eventName}</strong> is starting soon!
+    </p>
+
+    <!-- Detail Card -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0a0a1a;border:1px solid rgba(255,255,255,0.08);border-radius:16px;margin-bottom:28px;">
+      <tr>
+        <td style="padding:24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:1px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">Registration ID</td>
+              <td align="right" style="color:#a5b4fc;font-size:16px;font-weight:700;letter-spacing:2px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">${registrationId}</td>
+            </tr>
+            <tr>
+              <td style="color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:1px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">Event Name</td>
+              <td align="right" style="color:#f1f5f9;font-size:14px;font-weight:600;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">${eventName}</td>
+            </tr>
+            <tr>
+              <td style="color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:1px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">Date & Time</td>
+              <td align="right" style="color:#f1f5f9;font-size:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">📅 ${eventDate}</td>
+            </tr>
+            ${venue ? `
+            <tr>
+              <td style="color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:1px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">Venue</td>
+              <td align="right" style="color:#f1f5f9;font-size:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">📍 ${venue}</td>
+            </tr>` : ""}
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <p style="color:#64748b;font-size:13px;line-height:1.7;margin:0;">
+      Please ensure you have your Registration ID handy at check-in. We wish you the best of luck and look forward to seeing you code, design, or pitch!
+    </p>
+  `;
+
+  return {
+    subject: `Reminder: ${eventName} starts soon! | ${branding.siteName}`,
+    html: wrapEmailTemplate(contentHtml, "#4F46E5", branding),
+  };
+}

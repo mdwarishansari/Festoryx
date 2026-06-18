@@ -140,6 +140,7 @@ model Event {
   problemStatement     String?           @db.Text
   problemReleaseTime   DateTime?
   isPublished          Boolean           @default(false)
+  status               EventStatus       @default(DRAFT)
   isRegistrationOpen   Boolean           @default(true)
   isSubmissionOpen     Boolean           @default(false)
   sortOrder            Int               @default(0)
@@ -685,3 +686,10 @@ model AboutCard {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+

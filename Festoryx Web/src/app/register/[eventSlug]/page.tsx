@@ -5,6 +5,8 @@ import { RegistrationFormClient } from "./registration-form";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { notFound } from "next/navigation";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
+import { CosmicBackground } from "@/components/ui/cosmic-background";
 import Link from "next/link";
 import { ArrowLeft, Sparkles, AlertCircle } from "lucide-react";
 import { serializePrisma, formatDateTime } from "@/lib/utils";
@@ -42,6 +44,26 @@ export default async function RegisterPage({ params }: PageProps) {
     notFound();
   }
 
+  // Enforce visibility protection for PRIVATE events
+  if (dbEvent.visibility === "PRIVATE") {
+    const user = await getCurrentUser();
+    if (!user) {
+      notFound();
+    }
+    const isSuper = isSuperAdmin(user);
+    if (!isSuper) {
+      const member = await prisma.organizationMember.findFirst({
+        where: {
+          userId: user.id,
+          organizationId: dbEvent.organizationId,
+        },
+      });
+      if (!member) {
+        notFound();
+      }
+    }
+  }
+
   // Load form fields for this event (or organization default)
   let dbFormFields = dbEvent.formFields || [];
   if (dbFormFields.length === 0) {
@@ -77,12 +99,10 @@ export default async function RegisterPage({ params }: PageProps) {
   const isRegistrationOpen = event.isRegistrationOpen && !isDeadlinePassed;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#030014]">
-      {/* Background Star field effect */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))] -z-10" />
-
+    <div className="flex min-h-screen flex-col bg-transparent text-[#f4f0ff] font-sans relative">
+      <CosmicBackground />
       <Header />
-      <main className="flex-grow pt-28 pb-16">
+      <main className="flex-grow pt-28 pb-16 relative z-10">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
           {/* Back button */}
           <Link

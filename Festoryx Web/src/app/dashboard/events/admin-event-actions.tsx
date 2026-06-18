@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toggleEventPublish, toggleEventRegistration, deleteEvent } from "@/actions/event.actions";
 import { toast } from "sonner";
-import { Eye, EyeOff, Edit, Trash2, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, Edit, Trash2, ShieldAlert, Gamepad2 } from "lucide-react";
 
 interface AdminEventActionsProps {
   eventId: string;
@@ -13,6 +13,7 @@ interface AdminEventActionsProps {
   isRegistrationOpen: boolean;
   eventName: string;
   registrationsCount: number;
+  hasQuizArena?: boolean;
 }
 
 export function AdminEventActions({
@@ -21,6 +22,7 @@ export function AdminEventActions({
   isRegistrationOpen,
   eventName,
   registrationsCount,
+  hasQuizArena,
 }: AdminEventActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -111,6 +113,19 @@ export function AdminEventActions({
       >
         {isRegistrationOpen ? "Open" : "Closed"}
       </button>
+
+      {/* Quiz Coordinator Link */}
+      {hasQuizArena && (
+        <a
+          href={`${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "http://localhost:3002"}/admin`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-lg p-2 bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20 hover:text-white transition-all"
+          title="Quiz Coordinator Console"
+        >
+          <Gamepad2 className="h-4 w-4" />
+        </a>
+      )}
 
       {/* Edit Link */}
       <Link

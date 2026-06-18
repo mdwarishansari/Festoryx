@@ -20,6 +20,8 @@ import {
   Send,
   Flame,
   Info,
+  Building2,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,12 +32,14 @@ interface AdminSidebarProps {
 
 const navItems = [
   { label: "Dashboard", href: "/superadmin", icon: LayoutDashboard },
+  { label: "Organizations", href: "/superadmin/organizations", icon: Building2 },
   { label: "Events", href: "/superadmin/events", icon: Calendar },
   { label: "Registrations", href: "/superadmin/registrations", icon: Users },
   { label: "Winners", href: "/superadmin/winners", icon: Trophy },
   { label: "Payments", href: "/superadmin/payments", icon: CreditCard },
   { label: "Messages", href: "/superadmin/messages", icon: Mail },
   { label: "Broadcast Email", href: "/superadmin/broadcast", icon: Send },
+  { label: "Audit Logs", href: "/superadmin/audit-logs", icon: History },
   { label: "About Cards", href: "/superadmin/about", icon: Info },
   { label: "Settings", href: "/superadmin/settings", icon: Settings },
   { label: "Quiz Arena", href: "/superadmin/sso-redirect", icon: Flame },

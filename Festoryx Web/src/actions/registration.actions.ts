@@ -121,6 +121,26 @@ export async function submitRegistration(
 
     const registrationId = await generateRegistrationId(eventSlug);
 
+    const standardKeys = [
+      "participantName",
+      "email",
+      "phone",
+      "collegeName",
+      "department",
+      "yearOrSemester",
+      "teamName",
+      "paymentReference",
+      "notes",
+      "teamMembers",
+    ];
+
+    const customFields: Record<string, any> = {};
+    for (const key of Object.keys(parsed.data)) {
+      if (!standardKeys.includes(key)) {
+        customFields[key] = (parsed.data as any)[key];
+      }
+    }
+
     const registration = await prisma.registration.create({
       data: {
         registrationId,
@@ -139,6 +159,7 @@ export async function submitRegistration(
         notes: parsed.data.notes || null,
         status: "SUBMITTED",
         paymentStatus: event.registrationFee ? "PENDING" : "APPROVED",
+        customFields: Object.keys(customFields).length > 0 ? customFields : undefined,
         teamMembers: parsed.data.teamMembers?.length
           ? {
               create: parsed.data.teamMembers.map((member) => ({

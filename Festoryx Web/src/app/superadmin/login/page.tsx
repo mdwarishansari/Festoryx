@@ -1,7 +1,18 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function SuperAdminLoginPage() {
+export default async function SuperAdminLoginPage() {
+  const user = await getCurrentUser();
+  if (user) {
+    if (isSuperAdmin(user)) {
+      redirect("/superadmin");
+    } else {
+      redirect("/dashboard");
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#030014] text-[#f4f0ff] p-4 font-sans">
       {/* Stars Background Grid Overlay */}
@@ -19,7 +30,7 @@ export default function SuperAdminLoginPage() {
         
         {/* Brand Icon/Logo */}
         <div className="h-16 w-16 mx-auto mb-6 overflow-hidden rounded-[16px] border border-white/10 flex items-center justify-center bg-[#10093a]/40 shadow-[inset_0_0_12px_rgba(255,255,255,0.02)]">
-          <img src="/Logo.png" alt="Festoryx Logo" className="h-10 w-10 object-contain" />
+          <img src="/Logo.gif" alt="Festoryx Logo" className="h-10 w-10 object-contain rounded-2xl" />
         </div>
         
         <h1 className="text-2xl font-medium tracking-tight text-white mb-2 font-heading">Super Admin Portal</h1>

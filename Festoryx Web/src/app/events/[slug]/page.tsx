@@ -5,6 +5,9 @@ import { getSettings } from "@/actions/settings.actions";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { notFound } from "next/navigation";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { CosmicBackground } from "@/components/ui/cosmic-background";
 import Link from "next/link";
 import {
   Calendar,
@@ -16,6 +19,7 @@ import {
   AlertCircle,
   Clock,
   ArrowLeft,
+  Sparkles,
 } from "lucide-react";
 import { formatDateTime, formatDate, serializePrisma } from "@/lib/utils";
 import { ReleaseCountdown } from "@/components/events/release-countdown";
@@ -57,6 +61,26 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
     notFound();
   }
 
+  // Enforce visibility protection for PRIVATE events
+  if (dbEvent.visibility === "PRIVATE") {
+    const user = await getCurrentUser();
+    if (!user) {
+      notFound();
+    }
+    const isSuper = isSuperAdmin(user);
+    if (!isSuper) {
+      const member = await prisma.organizationMember.findFirst({
+        where: {
+          userId: user.id,
+          organizationId: dbEvent.organizationId,
+        },
+      });
+      if (!member) {
+        notFound();
+      }
+    }
+  }
+
   const event = serializePrisma(dbEvent);
   const settings = serializePrisma(dbSettings);
 
@@ -67,6 +91,10 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
   const now = new Date();
   const isProblemReleased =
     event.problemReleaseTime && now >= new Date(event.problemReleaseTime);
+
+  const hasQuizArena = event.modules?.some(
+    (m: any) => m.module === "QUIZ_ARENA" && m.enabled
+  );
 
   const tabs = [
     { id: "overview", label: "Overview" },
@@ -80,9 +108,10 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#0f0f23]">
+    <div className="flex min-h-screen flex-col bg-transparent text-[#f4f0ff] font-sans relative">
+      <CosmicBackground />
       <Header />
-      <main className="flex-grow pt-28 pb-16">
+      <main className="flex-grow pt-28 pb-16 relative z-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Back link */}
           <Link
@@ -388,6 +417,29 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                       />
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Quiz Arena Integration */}
+              {hasQuizArena && (
+                <div className="rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-6 backdrop-blur-md shadow-xl space-y-4">
+                  <div className="flex items-center gap-2.5 border-b border-indigo-500/10 pb-3">
+                    <Sparkles className="h-5 w-5 text-indigo-400" />
+                    <h4 className="font-heading font-bold text-white">Live Quiz Arena</h4>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    This competition has an active Quiz Arena! Join the multiplayer live quiz room or manage the sessions from the dashboard.
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <a
+                      href={`${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "http://localhost:3002"}/join`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-10 w-full items-center justify-center rounded-xl bg-indigo-600 text-xs font-semibold text-white shadow-lg hover:bg-indigo-500 transition-all text-center"
+                    >
+                      Join Live Quiz Lobby
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
