@@ -1,12 +1,12 @@
-import { getPendingPayments, getPaymentStats } from "@/actions/payment.actions";
+import { getSuperAdminPendingPayments, getSuperAdminPaymentStats } from "@/actions/superadmin.actions";
 import { PaymentReviewActions } from "../registrations/[id]/payment-review-actions";
 import { CreditCard, AlertCircle, ExternalLink, Calendar, CheckSquare, XSquare, PlusSquare } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
 export default async function AdminPaymentsVerificationPage() {
   const [pendingPayments, stats] = await Promise.all([
-    getPendingPayments(),
-    getPaymentStats(),
+    getSuperAdminPendingPayments(),
+    getSuperAdminPaymentStats(),
   ]);
 
   const statItems = [
@@ -85,7 +85,7 @@ export default async function AdminPaymentsVerificationPage() {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {pendingPayments.map((reg) => {
+            {pendingPayments.map((reg: any) => {
               const fee = reg.event.registrationFee
                 ? Number(reg.event.registrationFee)
                 : 0;

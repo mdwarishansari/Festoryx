@@ -207,11 +207,11 @@ export async function getUserOrganizations() {
   return memberships.map((m) => m.organization);
 }
 
-export async function approveOrganization(orgId: string): Promise<Organization> {
+export async function approveOrganization(orgId: string): Promise<void> {
   const user = await getCurrentUser();
   if (!user || !isSuperAdmin(user)) throw new Error("Unauthorized");
 
-  const org = await prisma.organization.update({
+  await prisma.organization.update({
     where: { id: orgId },
     data: { status: "ACTIVE", statusNote: null },
   });
@@ -225,14 +225,13 @@ export async function approveOrganization(orgId: string): Promise<Organization> 
   });
 
   revalidatePath("/admin/organizations");
-  return org;
 }
 
-export async function rejectOrganization(orgId: string, note: string): Promise<Organization> {
+export async function rejectOrganization(orgId: string, note: string): Promise<void> {
   const user = await getCurrentUser();
   if (!user || !isSuperAdmin(user)) throw new Error("Unauthorized");
 
-  const org = await prisma.organization.update({
+  await prisma.organization.update({
     where: { id: orgId },
     data: { status: "REJECTED", statusNote: note },
   });
@@ -247,14 +246,13 @@ export async function rejectOrganization(orgId: string, note: string): Promise<O
   });
 
   revalidatePath("/admin/organizations");
-  return org;
 }
 
-export async function suspendOrganization(orgId: string): Promise<Organization> {
+export async function suspendOrganization(orgId: string): Promise<void> {
   const user = await getCurrentUser();
   if (!user || !isSuperAdmin(user)) throw new Error("Unauthorized");
 
-  const org = await prisma.organization.update({
+  await prisma.organization.update({
     where: { id: orgId },
     data: { status: "SUSPENDED" },
   });
@@ -268,7 +266,6 @@ export async function suspendOrganization(orgId: string): Promise<Organization> 
   });
 
   revalidatePath("/admin/organizations");
-  return org;
 }
 
 export async function requestChanges(orgId: string, note: string): Promise<Organization> {

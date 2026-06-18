@@ -198,7 +198,7 @@ export default async function AdminDashboardPage() {
             </p>
           </div>
           <Link
-            href="/admin/registrations"
+            href="/superadmin/registrations"
             className="flex items-center gap-1 text-sm text-indigo-400 transition-colors hover:text-indigo-300"
           >
             View all
@@ -290,7 +290,7 @@ export default async function AdminDashboardPage() {
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Link
-            href="/admin/events"
+            href="/superadmin/events"
             className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-200 hover:border-indigo-500/30 hover:bg-indigo-500/5"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/10 transition-colors group-hover:bg-indigo-500/20">
@@ -303,7 +303,7 @@ export default async function AdminDashboardPage() {
           </Link>
 
           <Link
-            href="/admin/registrations"
+            href="/superadmin/registrations"
             className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-200 hover:border-purple-500/30 hover:bg-purple-500/5"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 transition-colors group-hover:bg-purple-500/20">
@@ -318,7 +318,7 @@ export default async function AdminDashboardPage() {
           </Link>
 
           <Link
-            href="/admin/payments"
+            href="/superadmin/payments"
             className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-200 hover:border-amber-500/30 hover:bg-amber-500/5"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 transition-colors group-hover:bg-amber-500/20">
@@ -333,7 +333,7 @@ export default async function AdminDashboardPage() {
           </Link>
 
           <Link
-            href="/admin/export"
+            href="/superadmin/export"
             className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-200 hover:border-emerald-500/30 hover:bg-emerald-500/5"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 transition-colors group-hover:bg-emerald-500/20">

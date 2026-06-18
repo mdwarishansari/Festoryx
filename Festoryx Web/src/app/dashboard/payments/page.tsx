@@ -2,11 +2,19 @@ import { getPendingPayments, getPaymentStats } from "@/actions/payment.actions";
 import { PaymentReviewActions } from "../registrations/[id]/payment-review-actions";
 import { CreditCard, AlertCircle, ExternalLink, Calendar, CheckSquare, XSquare, PlusSquare } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { requireAuth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export default async function AdminPaymentsVerificationPage() {
+  const user = await requireAuth();
+  const member = await prisma.organizationMember.findFirst({
+    where: { userId: user.id },
+  });
+  const orgId = member?.organizationId;
+
   const [pendingPayments, stats] = await Promise.all([
-    getPendingPayments(),
-    getPaymentStats(),
+    getPendingPayments(orgId),
+    getPaymentStats(orgId),
   ]);
 
   const statItems = [

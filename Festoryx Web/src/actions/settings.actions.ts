@@ -20,7 +20,15 @@ async function getOrgIdForCurrentUser(): Promise<string> {
 
 export async function getSettings(): Promise<any | null> {
   try {
-    const orgId = await getOrgIdForCurrentUser();
+    const user = await getCurrentUser();
+    if (!user) return null;
+
+    const member = await prisma.organizationMember.findFirst({
+      where: { userId: user.id },
+    });
+    if (!member) return null;
+
+    const orgId = member.organizationId;
     const org = await prisma.organization.findUnique({
       where: { id: orgId },
       include: { settings: true },

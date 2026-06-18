@@ -31,7 +31,7 @@
 
   /* Font families */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-heading), ui-sans-serif, system-ui, sans-serif;
 
   /* Custom Spacing */
   --spacing-15: 3.75rem;

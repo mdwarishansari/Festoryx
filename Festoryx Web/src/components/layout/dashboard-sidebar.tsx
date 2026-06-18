@@ -62,7 +62,7 @@ export function DashboardSidebar({ adminName, adminEmail, avatarUrl, orgName }: 
         <Link href="/dashboard" className="flex items-center gap-2 group">
           <div className="h-10 w-10 overflow-hidden rounded-xl border border-white/20 transition-all duration-200 group-hover:border-indigo-400">
             <img
-              src="/LogoGIF.gif"
+              src="/Logo.gif"
               alt="Festoryx Logo"
               className="h-full w-full object-cover rounded-xl"
             />
@@ -131,7 +131,7 @@ export function DashboardSidebar({ adminName, adminEmail, avatarUrl, orgName }: 
         <div className="mb-3 flex items-center gap-3">
           <div className="h-9 w-9 overflow-hidden rounded-full border border-white/20">
             <img
-              src={avatarUrl || "/LogoGIF.gif"}
+              src={avatarUrl || "/Logo.gif"}
               alt="Profile"
               className="h-full w-full object-cover rounded-full"
             />

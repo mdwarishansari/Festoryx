@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Inter, DM_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import Script from "next/script";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -11,10 +11,11 @@ const inter = Inter({
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const dmSans = DM_Sans({
+  variable: "--font-heading",
   subsets: ["latin"],
   display: "swap",
+  weight: "500",
 });
 
 import { LoadingScreen } from "@/components/shared/loading-screen";
@@ -60,7 +61,7 @@ export default async function RootLayout({
     <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <html
         lang="en"
-        className={`${inter.variable} ${spaceGrotesk.variable} dark`}
+        className={`${inter.variable} ${dmSans.variable} dark`}
         data-scroll-behavior="smooth"
         suppressHydrationWarning
       >

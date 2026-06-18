@@ -531,7 +531,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   type="text"
                   {...register("githubUrl")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                  placeholder="https://github.com/mdwarishansari/Aayam"
+                  placeholder="https://github.com/mdwarishansari/Festoryx"
                 />
               </div>
               <div>
@@ -558,7 +558,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   type="text"
                   {...register("youtubeUrl")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                  placeholder="https://www.youtube.com/@AayamTechFest"
+                  placeholder="https://www.youtube.com/@Festoryx"
                 />
               </div>
             </div>

@@ -29,18 +29,18 @@ interface AdminSidebarProps {
 }
 
 const navItems = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Events", href: "/admin/events", icon: Calendar },
-  { label: "Registrations", href: "/admin/registrations", icon: Users },
-  { label: "Winners", href: "/admin/winners", icon: Trophy },
-  { label: "Payments", href: "/admin/payments", icon: CreditCard },
-  { label: "Messages", href: "/admin/messages", icon: Mail },
-  { label: "Broadcast Email", href: "/admin/broadcast", icon: Send },
-  { label: "About Cards", href: "/admin/about", icon: Info },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
-  { label: "Quiz Arena", href: "/admin/sso-redirect", icon: Flame },
-  { label: "Export", href: "/admin/export", icon: Download },
-  { label: "Reset System", href: "/admin/reset", icon: RefreshCw },
+  { label: "Dashboard", href: "/superadmin", icon: LayoutDashboard },
+  { label: "Events", href: "/superadmin/events", icon: Calendar },
+  { label: "Registrations", href: "/superadmin/registrations", icon: Users },
+  { label: "Winners", href: "/superadmin/winners", icon: Trophy },
+  { label: "Payments", href: "/superadmin/payments", icon: CreditCard },
+  { label: "Messages", href: "/superadmin/messages", icon: Mail },
+  { label: "Broadcast Email", href: "/superadmin/broadcast", icon: Send },
+  { label: "About Cards", href: "/superadmin/about", icon: Info },
+  { label: "Settings", href: "/superadmin/settings", icon: Settings },
+  { label: "Quiz Arena", href: "/superadmin/sso-redirect", icon: Flame },
+  { label: "Export", href: "/superadmin/export", icon: Download },
+  { label: "Reset System", href: "/superadmin/reset", icon: RefreshCw },
 ];
 
 export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
@@ -49,7 +49,7 @@ export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
   const { signOut } = useClerk();
 
   function isActive(href: string) {
-    if (href === "/admin") return pathname === "/admin";
+    if (href === "/superadmin") return pathname === "/superadmin";
     return pathname.startsWith(href);
   }
 
@@ -57,10 +57,10 @@ export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
     <div className="flex h-full flex-col">
       {/* Logo */}
       <div className="flex h-16 items-center border-b border-white/10 px-5">
-        <Link href="/admin" className="flex items-center gap-2 group">
+        <Link href="/superadmin" className="flex items-center gap-2 group">
           <div className="h-10 w-10 overflow-hidden rounded-xl border border-white/20 transition-all duration-200 group-hover:border-indigo-400">
             <img
-              src="/LogoGIF.gif"
+               src="/Logo.png"
               alt="Festoryx Logo"
               className="h-full w-full object-cover rounded-xl"
             />
@@ -70,7 +70,7 @@ export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
           </span>
         </Link>
         <span className="ml-auto rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-indigo-400">
-          Admin
+          Super Admin
         </span>
       </div>
 
@@ -129,7 +129,7 @@ export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
         <div className="mb-3 flex items-center gap-3">
           <div className="h-9 w-9 overflow-hidden rounded-full border border-white/20">
             <img
-              src="/LogoGIF.gif"
+              src="/Logo.png"
               alt="Admin Profile"
               className="h-full w-full object-cover rounded-full"
             />

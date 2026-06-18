@@ -1,6 +1,6 @@
-# AAYAM Quiz Arena - Feature Updates & Bug Fixes Documentation
+# Festoryx Quiz Arena - Feature Updates & Bug Fixes Documentation
 
-This document summarizes the updates, real-time enhancements, and bug-fix implementation details added to **AAYAM Quiz Arena**.
+This document summarizes the updates, real-time enhancements, and bug-fix implementation details added to **Festoryx Quiz Arena**.
 
 ---
 

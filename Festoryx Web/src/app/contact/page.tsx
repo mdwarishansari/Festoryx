@@ -94,7 +94,7 @@ export default async function ContactPage() {
                   {/* YouTube Channel */}
                   {(() => {
                     const socialLinks = settings?.socialLinks as any;
-                    const youtube = socialLinks?.youtube || "https://www.youtube.com/@AayamTechFest";
+                    const youtube = socialLinks?.youtube || "https://www.youtube.com/@Festoryx";
                     return (
                       <div className="group flex items-start gap-4 transition-transform duration-200 hover:translate-x-1">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 shrink-0 transition-all duration-300 group-hover:bg-rose-600/20 group-hover:border-rose-400">
@@ -106,7 +106,7 @@ export default async function ContactPage() {
                         <div>
                           <p className="text-sm font-semibold text-gray-300">YouTube Channel</p>
                           <a href={youtube} target="_blank" rel="noopener noreferrer" className="mt-1 block text-base text-white hover:text-rose-400 transition-colors">
-                            @AayamTechFest
+                            @Festoryx
                           </a>
                         </div>
                       </div>

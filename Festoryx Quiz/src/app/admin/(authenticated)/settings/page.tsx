@@ -86,7 +86,7 @@ export default async function AdminSettingsPage() {
         <div className="space-y-1">
           <h4 className="text-sm font-bold text-white font-heading">Security & Credentials Note</h4>
           <p className="text-xs text-gray-400 leading-relaxed">
-            Admin credentials and password modifications can only be managed from the main Aayam website admin panel. This ensures single-sign-on (SSO) credentials remain strictly unified across the entire techfest platform.
+            Admin credentials and password modifications can only be managed from the main Festoryx portal settings. This ensures single-sign-on (SSO) credentials remain strictly unified across the entire techfest platform.
           </p>
         </div>
       </div>

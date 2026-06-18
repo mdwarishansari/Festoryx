@@ -1,5 +1,4 @@
-import { getRegistrations } from "@/actions/registration.actions";
-import { getEvents } from "@/actions/event.actions";
+import { getSuperAdminRegistrations, getSuperAdminEvents } from "@/actions/superadmin.actions";
 import { RegistrationFiltersClient } from "./registration-filters";
 import Link from "next/link";
 import { Users, Eye, ArrowLeft, ArrowRight, ClipboardList } from "lucide-react";
@@ -24,7 +23,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
   const page = Number(resolvedSearchParams.page) || 1;
 
   const [registrationsData, events] = await Promise.all([
-    getRegistrations({
+    getSuperAdminRegistrations({
       search,
       eventId,
       paymentStatus,
@@ -32,7 +31,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
       page,
       pageSize: 10,
     }),
-    getEvents(),
+    getSuperAdminEvents(),
   ]);
 
   const { registrations, total, pages, currentPage } = registrationsData;
@@ -60,7 +59,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
     if (resolvedSearchParams.paymentStatus) params.set("paymentStatus", resolvedSearchParams.paymentStatus);
     if (resolvedSearchParams.status) params.set("status", resolvedSearchParams.status);
     params.set("page", String(pageNum));
-    return `/admin/registrations?${params.toString()}`;
+    return `/superadmin/registrations?${params.toString()}`;
   }
 
   return (
@@ -77,7 +76,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
       </div>
 
       {/* Filters Client component */}
-      <RegistrationFiltersClient events={events.map((e) => ({ id: e.id, name: e.name }))} />
+      <RegistrationFiltersClient events={events.map((e: any) => ({ id: e.id, name: e.name }))} />
 
       {/* Registrations List */}
       {registrations.length === 0 ? (
@@ -104,7 +103,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {registrations.map((reg) => (
+                  {registrations.map((reg: any) => (
                     <tr
                       key={reg.id}
                       className="transition-colors hover:bg-white/5"
@@ -152,7 +151,7 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                       </td>
                       <td className="px-6 py-4 text-right">
                         <Link
-                          href={`/admin/registrations/${reg.id}`}
+                          href={`/superadmin/registrations/${reg.id}`}
                           className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white transition-all hover:bg-white/10"
                         >
                           <Eye className="h-3.5 w-3.5" />

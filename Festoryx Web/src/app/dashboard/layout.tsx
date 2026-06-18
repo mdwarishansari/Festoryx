@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, isSuperAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
 
@@ -11,6 +11,10 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await requireAuth();
+
+  if (isSuperAdmin(user)) {
+    redirect("/superadmin");
+  }
 
   // Find organization member relation
   const memberRelation = await prisma.organizationMember.findFirst({

@@ -1,10 +1,10 @@
-import { getEvents } from "@/actions/event.actions";
+import { getSuperAdminEvents } from "@/actions/superadmin.actions";
 import { AdminEventActions } from "./admin-event-actions";
 import Link from "next/link";
 import { Plus, Trophy, Calendar, Sparkles } from "lucide-react";
 
 export default async function AdminEventsListPage() {
-  const events = await getEvents();
+  const events = await getSuperAdminEvents();
 
   return (
     <div className="space-y-8">
@@ -13,19 +13,19 @@ export default async function AdminEventsListPage() {
         <div>
           <h1 className="font-heading text-3xl font-bold tracking-tight text-white flex items-center gap-2">
             <Calendar className="h-8 w-8 text-indigo-400" />
-            <span>Manage Competitions</span>
+            <span>Manage Platform Competitions</span>
           </h1>
           <p className="mt-1 text-sm text-gray-400">
-            Create, publish, edit, and configure the settings of your festival events.
+            View, inspect, and configure events across all platform organizations.
           </p>
         </div>
 
         <Link
-          href="/admin/events/new"
+          href="/superadmin/events/new"
           className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:bg-indigo-500"
         >
           <Plus className="h-4 w-4" />
-          <span>Create Event</span>
+          <span>Create Global Event</span>
         </Link>
       </div>
 
@@ -38,7 +38,7 @@ export default async function AdminEventsListPage() {
             Create your first competition to display on the platform landing page.
           </p>
           <Link
-            href="/admin/events/new"
+            href="/superadmin/events/new"
             className="mt-6 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-500"
           >
             Add Competition
@@ -59,7 +59,7 @@ export default async function AdminEventsListPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {events.map((event) => {
+                {events.map((event: any) => {
                   const fee = event.registrationFee ? Number(event.registrationFee) : 0;
                   return (
                     <tr

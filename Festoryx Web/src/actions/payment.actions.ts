@@ -73,30 +73,33 @@ export async function verifyPayment(
   }
 }
 
-export async function getPendingPayments() {
+export async function getPendingPayments(orgId?: string) {
   try {
     return await prisma.registration.findMany({
-      where: { paymentStatus: "PENDING" },
+      where: {
+        paymentStatus: "PENDING",
+        organizationId: orgId,
+      },
       include: { event: true },
       orderBy: { createdAt: "asc" },
     });
   } catch (error) {
-    console.warn("⚠️ [Prisma] Database is not reachable. Using fallback pending payments.");
+    console.warn("⚠️ [Prisma] Database error in getPendingPayments:", error);
     return [];
   }
 }
 
-export async function getPaymentStats() {
+export async function getPaymentStats(orgId?: string) {
   try {
     const [pending, approved, rejected] = await Promise.all([
-      prisma.registration.count({ where: { paymentStatus: "PENDING" } }),
-      prisma.registration.count({ where: { paymentStatus: "APPROVED" } }),
-      prisma.registration.count({ where: { paymentStatus: "REJECTED" } }),
+      prisma.registration.count({ where: { paymentStatus: "PENDING", organizationId: orgId } }),
+      prisma.registration.count({ where: { paymentStatus: "APPROVED", organizationId: orgId } }),
+      prisma.registration.count({ where: { paymentStatus: "REJECTED", organizationId: orgId } }),
     ]);
 
     return { pending, approved, rejected, total: pending + approved + rejected };
   } catch (error) {
-    console.warn("⚠️ [Prisma] Database is not reachable. Using fallback payment stats.");
+    console.warn("⚠️ [Prisma] Database error in getPaymentStats:", error);
     return { pending: 0, approved: 0, rejected: 0, total: 0 };
   }
 }

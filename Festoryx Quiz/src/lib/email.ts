@@ -147,7 +147,7 @@ function wrapEmailTemplate(
               ${branding.youtubeUrl ? `
               <p style="color:#94a3b8;font-size:11px;margin:8px 0 8px;">
                 📺 Subscribe to our YouTube Channel for event videos & highlights: 
-                <a href="${branding.youtubeUrl}" target="_blank" style="color:#ef4444;text-decoration:none;font-weight:600;">@AayamTechFest</a>
+                <a href="${branding.youtubeUrl}" target="_blank" style="color:#ef4444;text-decoration:none;font-weight:600;">@Festoryx</a>
               </p>
               ` : ""}
               <p style="color:#374151;font-size:10px;margin:8px 0 0;">

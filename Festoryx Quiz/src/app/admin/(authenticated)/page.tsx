@@ -410,8 +410,8 @@ export default async function AdminDashboardPage() {
                   <p className="text-gray-500">Frontend server URL: <code className="font-mono bg-white/5 px-1 py-0.5 rounded text-[10px]">http://localhost:3002</code></p>
                 </div>
                 <div>
-                  <span className="font-semibold text-gray-300 font-mono">NEXT_PUBLIC_Festoryx_URL</span>
-                  <p className="text-gray-500">Point back to main Aayam portal for integration: <code className="font-mono bg-white/5 px-1 py-0.5 rounded text-[10px]">http://localhost:3000</code></p>
+                  <span className="font-semibold text-gray-300 font-mono">NEXT_PUBLIC_FESTORYX_URL</span>
+                  <p className="text-gray-500">Point back to main Festoryx portal for integration: <code className="font-mono bg-white/5 px-1 py-0.5 rounded text-[10px]">http://localhost:3000</code></p>
                 </div>
               </div>
             </div>

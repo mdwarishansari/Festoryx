@@ -19,7 +19,7 @@ export default async function AdminExportDataPage() {
       </div>
 
       {/* Export Panel Client Wrapper */}
-      <ExportPanel events={events.map((e) => ({ id: e.id, name: e.name }))} />
+      <ExportPanel events={events.map((e: any) => ({ id: e.id, name: e.name }))} />
     </div>
   );
 }
