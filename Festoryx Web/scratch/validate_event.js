@@ -6,7 +6,7 @@ const { Pool } = require("pg");
 const { z } = require("zod");
 
 // Read .env manually
-const envPath = "/home/md-warish-ansari/Desktop/Aayam/.env";
+const envPath = "/home/md-warish-ansari/Projects/Festoryx/Festoryx Web/.env";
 const envContent = fs.readFileSync(envPath, "utf8");
 const dbUrlMatch = envContent.match(/^DATABASE_URL=["']?([^"'\n]+)["']?/m);
 if (!dbUrlMatch) {

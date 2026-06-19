@@ -58,7 +58,8 @@ export default async function RootLayout({
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
 
   return (
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+    // @ts-ignore
+    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY} unsafe_disableDevelopmentModeConsoleWarning={true}>
       <html
         lang="en"
         className={`${inter.variable} ${dmSans.variable} dark`}

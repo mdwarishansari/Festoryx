@@ -31,6 +31,17 @@ const pool = new Pool({
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 const httpServer = createServer((req, res) => {
+  // Add CORS headers for health check requests
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   if (req.url === "/health" || req.url === "/") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ status: "ok", timestamp: new Date().toISOString() }));

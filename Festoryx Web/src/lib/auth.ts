@@ -14,22 +14,38 @@ export async function getOrCreateDbUser(): Promise<User | null> {
   const avatarUrl = clerkUser.imageUrl;
   const isSuperAdminEmail = email === process.env.SUPER_ADMIN_EMAIL;
 
-  const dbUser = await prisma.user.upsert({
-    where: { clerkId: clerkUser.id },
-    update: {
-      email,
-      name,
-      avatarUrl,
-      role: isSuperAdminEmail ? "SUPER_ADMIN" : undefined,
-    },
-    create: {
-      clerkId: clerkUser.id,
-      email,
-      name,
-      avatarUrl,
-      role: isSuperAdminEmail ? "SUPER_ADMIN" : "ORG_ADMIN",
-    },
+  // Check if a user with same clerkId or email exists to handle seeded placeholder clerkId
+  let dbUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { clerkId: clerkUser.id },
+        { email }
+      ]
+    }
   });
+
+  if (dbUser) {
+    dbUser = await prisma.user.update({
+      where: { id: dbUser.id },
+      data: {
+        clerkId: clerkUser.id,
+        email,
+        name,
+        avatarUrl,
+        role: isSuperAdminEmail ? "SUPER_ADMIN" : dbUser.role,
+      }
+    });
+  } else {
+    dbUser = await prisma.user.create({
+      data: {
+        clerkId: clerkUser.id,
+        email,
+        name,
+        avatarUrl,
+        role: isSuperAdminEmail ? "SUPER_ADMIN" : "ORG_ADMIN",
+      }
+    });
+  }
 
   return dbUser;
 }
@@ -38,13 +54,21 @@ export async function getCurrentUser(): Promise<User | null> {
   const { userId } = await auth();
   if (!userId) return null;
 
-  const dbUser = await prisma.user.findUnique({
+  let dbUser = await prisma.user.findUnique({
     where: { clerkId: userId },
   });
 
   if (!dbUser) {
-    // Falls back to creating the user in DB if it exists in Clerk but not yet in DB
+    // Falls back to creating/linking user in DB
     return getOrCreateDbUser();
+  }
+
+  // Update role dynamically if email matches SUPER_ADMIN_EMAIL
+  if (dbUser.email === process.env.SUPER_ADMIN_EMAIL && dbUser.role !== "SUPER_ADMIN") {
+    dbUser = await prisma.user.update({
+      where: { id: dbUser.id },
+      data: { role: "SUPER_ADMIN" },
+    });
   }
 
   return dbUser;
