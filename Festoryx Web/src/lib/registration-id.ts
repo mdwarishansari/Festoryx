@@ -1,23 +1,21 @@
 import { prisma } from "@/lib/prisma";
-import { EVENT_CODE_MAP } from "@/lib/constants";
 
 /**
- * Generate a unique registration ID like Festoryx-HACK-001
- * Uses the event slug to look up the event code, then counts existing registrations
+ * Generate a unique registration ID like FESTORYX-TEST-001
+ * Uses the event and organization names to generate the ID
  */
 export async function generateRegistrationId(eventSlug: string): Promise<string> {
-  // Get the event code from the slug, or create one from the first 4 chars
-  const eventCode =
-    EVENT_CODE_MAP[eventSlug] ||
-    eventSlug
-      .replace(/-/g, "")
-      .substring(0, 4)
-      .toUpperCase();
-
-  // Count existing registrations for this event
   const event = await prisma.event.findUnique({
     where: { slug: eventSlug },
-    select: { id: true },
+    select: {
+      id: true,
+      name: true,
+      organization: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 
   if (!event) {
@@ -28,7 +26,16 @@ export async function generateRegistrationId(eventSlug: string): Promise<string>
     where: { eventId: event.id },
   });
 
-  // Format: Festoryx-CODE-001
+  const orgNameClean = event.organization.name
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .substring(0, 12);
+    
+  const eventNameClean = event.name
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .substring(0, 12);
+
   const sequenceNumber = String(count + 1).padStart(3, "0");
-  return `Festoryx-${eventCode}-${sequenceNumber}`;
+  return `${orgNameClean}-${eventNameClean}-${sequenceNumber}`;
 }

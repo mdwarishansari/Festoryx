@@ -8,6 +8,7 @@ import {
 } from "@/actions/organization.actions";
 import { DeleteOrgButton } from "./delete-org-button";
 import { Building2, CheckCircle, XCircle, AlertTriangle, ShieldAlert, History } from "lucide-react";
+import { getOrgTypeEmoji } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -163,7 +164,7 @@ function OrgCard({ org }: { org: any }) {
             {org.logoUrl ? (
               <img src={org.logoUrl} alt={org.name} className="h-full w-full object-cover" />
             ) : (
-              <Building2 className="h-6 w-6 text-[#9382ff]" />
+              <span className="text-2xl">{getOrgTypeEmoji(org.type)}</span>
             )}
           </div>
           <div>

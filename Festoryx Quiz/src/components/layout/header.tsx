@@ -15,7 +15,7 @@ const navLinks = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [logoUrl, setLogoUrl] = useState("/LogoGIF.gif");
+  const [logoUrl, setLogoUrl] = useState("/Logo.gif");
   const [headerLogoUrl, setHeaderLogoUrl] = useState("/RKDF-LOGO.png");
 
   useEffect(() => {

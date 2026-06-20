@@ -255,7 +255,7 @@ export function QuizClient({ session, participantId }: QuizClientProps) {
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 overflow-hidden rounded-full border border-white/10 bg-black/20">
-              <img src="/LogoGIF.gif" alt="Festoryx Logo" className="h-full w-full object-contain" />
+              <img src="/Logo.gif" alt="Festoryx Logo" className="h-full w-full object-contain" />
             </div>
             <div>
               <span className="text-xs font-semibold text-gray-500 uppercase tracking-widest leading-none">

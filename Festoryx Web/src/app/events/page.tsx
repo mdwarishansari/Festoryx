@@ -20,20 +20,45 @@ interface PageProps {
   searchParams: Promise<{
     type?: string;
     q?: string;
+    adv_q?: string;
     org?: string;
     format?: string;
     date?: string;
+    page?: string;
   }>;
+}
+
+function simpleSearchFilter(event: any, query: string): boolean {
+  if (!query) return true;
+  const q = query.toLowerCase().trim();
+  return event.name.toLowerCase().includes(q) || (event.shortDescription || "").toLowerCase().includes(q);
+}
+
+function advancedSearchFilter(event: any, query: string): boolean {
+  if (!query) return true;
+  const tokens = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return true;
+
+  // Verify all tokens match in at least one of description, rules, eligibility, venue, prizeDetails
+  return tokens.every(token => 
+    event.description.toLowerCase().includes(token) ||
+    (event.rules || "").toLowerCase().includes(token) ||
+    (event.eligibility || "").toLowerCase().includes(token) ||
+    (event.venue || "").toLowerCase().includes(token) ||
+    (event.prizeDetails || "").toLowerCase().includes(token)
+  );
 }
 
 export default async function EventsPage({ searchParams }: PageProps) {
   const resolvedSearchParams = await searchParams;
   const filterType = resolvedSearchParams.type || "ALL";
   const query = (resolvedSearchParams.q || "").trim();
-  const queryLower = query.toLowerCase();
+  const advQuery = (resolvedSearchParams.adv_q || "").trim();
   const orgSlug = resolvedSearchParams.org || "ALL";
   const formatFilter = resolvedSearchParams.format || "ALL";
   const dateFilter = resolvedSearchParams.date || "UPCOMING";
+  const page = Number(resolvedSearchParams.page) || 1;
+  const pageSize = 8;
 
   const [allEvents, activeOrgs] = await Promise.all([
     getPublishedEvents(),
@@ -48,20 +73,23 @@ export default async function EventsPage({ searchParams }: PageProps) {
     // 1. Participation Type Filter
     if (filterType !== "ALL" && event.participationType !== filterType) return false;
 
-    // 2. Search Query Filter
-    if (queryLower !== "") {
-      const nameMatch = event.name.toLowerCase().includes(queryLower);
-      const descMatch = (event.shortDescription || "").toLowerCase().includes(queryLower) || event.description.toLowerCase().includes(queryLower);
-      if (!nameMatch && !descMatch) return false;
+    // 2. Simple Search Query Filter
+    if (query !== "") {
+      if (!simpleSearchFilter(event, query)) return false;
     }
 
-    // 3. Organization Filter
+    // 3. Advanced Search Query Filter
+    if (advQuery !== "") {
+      if (!advancedSearchFilter(event, advQuery)) return false;
+    }
+
+    // 4. Organization Filter
     if (orgSlug !== "ALL" && event.organization?.slug !== orgSlug) return false;
 
-    // 4. Format Filter
+    // 5. Format Filter
     if (formatFilter !== "ALL" && (event.format || "").toLowerCase() !== formatFilter.toLowerCase()) return false;
 
-    // 5. Date Filter (Upcoming vs Past vs All)
+    // 6. Date Filter (Upcoming vs Past vs All)
     const now = new Date();
     const eventDate = event.eventDate ? new Date(event.eventDate) : null;
     if (dateFilter === "UPCOMING") {
@@ -72,6 +100,24 @@ export default async function EventsPage({ searchParams }: PageProps) {
 
     return true;
   });
+
+  // Pagination slicing
+  const total = filteredEvents.length;
+  const pages = Math.ceil(total / pageSize);
+  const paginatedEvents = filteredEvents.slice((page - 1) * pageSize, page * pageSize);
+
+  // Helper to build URL with page index
+  function getPageUrl(pageNum: number) {
+    const params = new URLSearchParams();
+    if (filterType !== "ALL") params.set("type", filterType);
+    if (query) params.set("q", query);
+    if (advQuery) params.set("adv_q", advQuery);
+    if (orgSlug !== "ALL") params.set("org", orgSlug);
+    if (formatFilter !== "ALL") params.set("format", formatFilter);
+    if (dateFilter !== "UPCOMING") params.set("date", dateFilter);
+    params.set("page", String(pageNum));
+    return `/events?${params.toString()}`;
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-transparent text-[#f4f0ff] font-sans relative">
@@ -94,16 +140,28 @@ export default async function EventsPage({ searchParams }: PageProps) {
           </div>
 
           {/* Search and Filters Panel */}
-          <form method="GET" action="/events" className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-5 items-end bg-[#060317] border border-white/5 p-4 rounded-xl shadow-[inset_0_0_12px_rgba(255,255,255,0.02)]">
-            {/* Search Input */}
+          <form method="GET" action="/events" className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-6 items-end bg-[#060317] border border-white/5 p-4 rounded-xl shadow-[inset_0_0_12px_rgba(255,255,255,0.02)]">
+            {/* Simple Search Input */}
             <div className="flex flex-col space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Search</label>
+              <label className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Simple Search</label>
               <input
                 type="text"
                 name="q"
                 defaultValue={query}
-                placeholder="Search competitions..."
+                placeholder="Name or short summary..."
                 className="w-full px-3 py-2 bg-[#030014] border border-white/10 rounded-lg text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#9382ff]"
+              />
+            </div>
+
+            {/* Advanced Search Input */}
+            <div className="flex flex-col space-y-1.5">
+              <label className="text-[10px] uppercase tracking-wider font-semibold text-indigo-400">Deep Search (Tokens)</label>
+              <input
+                type="text"
+                name="adv_q"
+                defaultValue={advQuery}
+                placeholder="Deep rules, venue or prizes..."
+                className="w-full px-3 py-2 bg-[#030014] border border-indigo-500/25 rounded-lg text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#9382ff] focus:ring-1 focus:ring-[#9382ff]"
               />
             </div>
 
@@ -178,7 +236,7 @@ export default async function EventsPage({ searchParams }: PageProps) {
           </form>
 
           {/* Grid list */}
-          {filteredEvents.length === 0 ? (
+          {paginatedEvents.length === 0 ? (
             <div className="mt-12 flex flex-col items-center justify-center rounded-3xl border border-white/5 bg-white/5 p-16 text-center backdrop-blur-md">
               <Trophy className="h-16 w-16 text-gray-500 mb-4" />
               <h3 className="text-xl font-bold text-white">No Competitions Found</h3>
@@ -193,10 +251,50 @@ export default async function EventsPage({ searchParams }: PageProps) {
               </Link>
             </div>
           ) : (
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredEvents.map((event) => (
-                <EventCard key={event.id} event={event} />
-              ))}
+            <div className="space-y-10">
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {paginatedEvents.map((event) => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+
+              {/* Pagination controls */}
+              {pages > 1 && (
+                <div className="flex items-center justify-between border-t border-white/10 pt-6">
+                  <span className="text-xs text-gray-400">
+                    Showing page <strong className="text-white">{page}</strong> of{" "}
+                    <strong className="text-white">{pages}</strong> (Total: {total} events)
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    {page > 1 ? (
+                      <Link
+                        href={getPageUrl(page - 1)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-xs font-semibold text-gray-300 hover:text-white transition-all"
+                      >
+                        ← Previous
+                      </Link>
+                    ) : (
+                      <div className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/5 bg-white/0 px-3 text-xs font-semibold text-gray-600 cursor-not-allowed">
+                        ← Previous
+                      </div>
+                    )}
+
+                    {page < pages ? (
+                      <Link
+                        href={getPageUrl(page + 1)}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 text-xs font-semibold text-gray-300 hover:text-white transition-all"
+                      >
+                        Next →
+                      </Link>
+                    ) : (
+                      <div className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-white/5 bg-white/0 px-3 text-xs font-semibold text-gray-600 cursor-not-allowed">
+                        Next →
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

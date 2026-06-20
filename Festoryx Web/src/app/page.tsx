@@ -4,6 +4,7 @@ import { Footer } from "@/components/layout/footer";
 import { prisma } from "@/lib/prisma";
 import { CosmicBackground } from "@/components/ui/cosmic-background";
 import { HomeHero } from "@/components/landing/home-hero";
+import { getOrgTypeEmoji } from "@/lib/utils";
 import { 
   FadeIn, 
   HoverCard, 
@@ -41,7 +42,7 @@ export default async function Home() {
     totalRegistrations,
     totalOrganizations
   ] = await Promise.all([
-    getPublishedEvents().catch(() => []),
+    getPublishedEvents(undefined, true).catch(() => []),
     prisma.organization.findMany({
       where: { status: "ACTIVE" },
       take: 4,
@@ -117,7 +118,7 @@ export default async function Home() {
                           {org.logoUrl ? (
                             <img src={org.logoUrl} alt={org.name} className="h-full w-full object-cover" />
                           ) : (
-                            <Users className="h-6 w-6 text-[#9382ff]" />
+                            <span className="text-2xl">{getOrgTypeEmoji(org.type)}</span>
                           )}
                         </div>
                         <div>

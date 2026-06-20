@@ -96,6 +96,8 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                   <tr>
                     <th className="px-6 py-4">Reg ID / Date</th>
                     <th className="px-6 py-4">Participant</th>
+                    <th className="px-6 py-4">Host Org</th>
+                    <th className="px-6 py-4">College / Phone</th>
                     <th className="px-6 py-4">Event</th>
                     <th className="px-6 py-4">Payment</th>
                     <th className="px-6 py-4">Status</th>
@@ -126,6 +128,15 @@ export default async function AdminRegistrationsPage({ searchParams }: PageProps
                           <span className="text-xs text-gray-500">
                             {reg.email}
                           </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-xs text-gray-300 font-medium">
+                        {reg.organization?.name || "-"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col text-xs text-gray-300">
+                          <span>{reg.collegeName}</span>
+                          <span className="text-[10px] font-mono text-gray-500">{reg.phone}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 font-semibold text-white">

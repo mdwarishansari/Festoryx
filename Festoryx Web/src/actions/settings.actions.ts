@@ -14,21 +14,62 @@ async function getOrgIdForCurrentUser(): Promise<string> {
     where: { userId: user.id },
   });
 
-  if (!member) throw new Error("No organization found for user");
+  if (!member) {
+    if (user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com") {
+      const firstOrg = await prisma.organization.findFirst();
+      if (firstOrg) return firstOrg.id;
+    }
+    throw new Error("No organization found for user");
+  }
   return member.organizationId;
 }
 
 export async function getSettings(): Promise<any | null> {
   try {
     const user = await getCurrentUser();
-    if (!user) return null;
+    let orgId: string | null = null;
+    
+    if (user) {
+      const member = await prisma.organizationMember.findFirst({
+        where: { userId: user.id },
+      });
+      if (member) {
+        orgId = member.organizationId;
+      } else if (user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com") {
+        const firstOrg = await prisma.organization.findFirst();
+        if (firstOrg) orgId = firstOrg.id;
+      }
+    }
 
-    const member = await prisma.organizationMember.findFirst({
-      where: { userId: user.id },
-    });
-    if (!member) return null;
+    if (!orgId) {
+      const firstOrg = await prisma.organization.findFirst({
+        include: { settings: true }
+      });
+      if (firstOrg) {
+        orgId = firstOrg.id;
+      } else {
+        return {
+          siteName: "Festoryx",
+          slug: "festoryx",
+          eventTitle: "Festoryx Events",
+          tagline: "Innovate. Compete. Excel.",
+          aboutContent: "",
+          contactEmail: "warishhclhome@gmail.com",
+          contactPhone: "+910000000000",
+          contactAddress: "University Campus, Main Road",
+          footerText: `© ${new Date().getFullYear()} Festoryx. All rights reserved.`,
+          paymentInstructions: "",
+          logoUrl: "/Logo.gif",
+          paymentQrCodeUrl: "",
+          instagramUrl: "https://instagram.com/festoryx",
+          githubUrl: "https://github.com/mdwarishansari/Festoryx",
+          twitterUrl: "https://twitter.com/festoryx",
+          linkedinUrl: "https://linkedin.com/company/festoryx",
+          youtubeUrl: "https://www.youtube.com/@Festoryx",
+        };
+      }
+    }
 
-    const orgId = member.organizationId;
     const org = await prisma.organization.findUnique({
       where: { id: orgId },
       include: { settings: true },
@@ -44,17 +85,18 @@ export async function getSettings(): Promise<any | null> {
       eventTitle: org.name + " Events",
       tagline: org.description ? org.description.slice(0, 100) : "",
       aboutContent: org.description || "",
-      contactEmail: orgSettings?.contactEmail || org.email,
-      contactPhone: orgSettings?.contactPhone || org.phone,
-      footerText: `© ${new Date().getFullYear()} ${org.name}. All rights reserved.`,
+      contactEmail: orgSettings?.contactEmail || "warishhclhome@gmail.com",
+      contactPhone: orgSettings?.contactPhone || "+910000000000",
+      contactAddress: org.city && org.state ? `${org.city}, ${org.state}` : "University Campus, Main Road",
+      footerText: `© ${new Date().getFullYear()} Festoryx. All rights reserved.`,
       paymentInstructions: orgSettings?.paymentInstructions || "",
-      logoUrl: org.logoUrl,
+      logoUrl: org.logoUrl || "/Logo.gif",
       paymentQrCodeUrl: orgSettings?.paymentQrCodeUrl,
-      instagramUrl: socialLinks?.instagram || "",
-      githubUrl: socialLinks?.github || "",
-      twitterUrl: socialLinks?.twitter || "",
-      linkedinUrl: socialLinks?.linkedin || "",
-      youtubeUrl: socialLinks?.youtube || "",
+      instagramUrl: socialLinks?.instagram || "https://instagram.com/festoryx",
+      githubUrl: socialLinks?.github || "https://github.com/mdwarishansari/Festoryx",
+      twitterUrl: socialLinks?.twitter || "https://twitter.com/festoryx",
+      linkedinUrl: socialLinks?.linkedin || "https://linkedin.com/company/festoryx",
+      youtubeUrl: socialLinks?.youtube || "https://www.youtube.com/@Festoryx",
     };
   } catch (error) {
     console.warn("⚠️ [Prisma] Database error in getSettings:", error);

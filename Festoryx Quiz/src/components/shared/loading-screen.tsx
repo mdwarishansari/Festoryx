@@ -42,7 +42,7 @@ export function LoadingScreen() {
           className="relative block h-48 w-48 overflow-hidden rounded-full border border-white/15 bg-black/40 p-1 shadow-2xl shadow-indigo-500/10 transition-transform hover:scale-105"
         >
           <Image
-            src="/LogoGIF.gif"
+            src="/Logo.gif"
             alt="Festoryx Logo"
             fill
             priority

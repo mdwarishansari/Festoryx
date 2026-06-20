@@ -109,6 +109,7 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
           lastRegistrationDate: formatDateTimeInput(initialData.lastRegistrationDate),
           problemReleaseTime: formatDateTimeInput(initialData.problemReleaseTime),
           visibility: initialData.visibility || "PUBLIC",
+          showOnHomepage: initialData.showOnHomepage ?? true,
           modules: initialData.modules ? initialData.modules.map((m: any) => m.module) : ["REGISTRATION"],
           formFields: mergeFormFields(initialData.formFields),
         }
@@ -134,6 +135,7 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
           problemStatement: "",
           problemReleaseTime: "",
           isPublished: false,
+          showOnHomepage: true,
           isRegistrationOpen: true,
           isSubmissionOpen: false,
           sortOrder: 0,
@@ -315,7 +317,17 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
         ))}
       </div>
 
-      <form onSubmit={handleSubmit(onFormSubmit, onFormError)} className="space-y-6">
+      <form
+        onSubmit={(e) => {
+          if (step < 6) {
+            e.preventDefault();
+            handleNext();
+          } else {
+            handleSubmit(onFormSubmit, onFormError)(e);
+          }
+        }}
+        className="space-y-6"
+      >
         {/* STEP 1: Basic Information & Challenge Details */}
         {step === 1 && (
           <div className="space-y-6">
@@ -562,12 +574,12 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
           <div className="space-y-6">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md space-y-6">
               <h3 className="font-heading text-lg font-semibold text-white border-b border-white/5 pb-2">
-                Visibility Settings
+                Visibility & Publishing Settings
               </h3>
 
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300">Visibility</label>
+                  <label className="block text-sm font-medium text-gray-300">Access Visibility</label>
                   <select
                     {...register("visibility")}
                     className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
@@ -579,28 +591,54 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-8 pt-4 border-t border-white/5">
-                <label className="flex items-center gap-3 cursor-pointer">
+              <div className="grid gap-6 sm:grid-cols-2 pt-4 border-t border-white/5">
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
-                    {...register("isRegistrationOpen")}
-                    className="h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
+                    {...register("isPublished")}
+                    className="mt-1 h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
                   />
                   <div>
-                    <span className="block text-sm font-medium text-white">Registration Open</span>
-                    <span className="text-xs text-gray-500">Allow participants to register</span>
+                    <span className="block text-sm font-medium text-white">Publish Globally</span>
+                    <span className="text-xs text-gray-500">Immediately list the event in the public marketplace.</span>
                   </div>
                 </label>
 
-                <label className="flex items-center gap-3 cursor-pointer">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    {...register("showOnHomepage")}
+                    className="mt-1 h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <span className="block text-sm font-medium text-white">Show on Homepage</span>
+                    <span className="text-xs text-gray-500">Feature this event in the "Arenas" section of the landing page.</span>
+                  </div>
+                </label>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2 pt-4 border-t border-white/5">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    {...register("isRegistrationOpen")}
+                    className="mt-1 h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <span className="block text-sm font-medium text-white">Registration Open</span>
+                    <span className="text-xs text-gray-500">Allow participants to register for this event.</span>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     {...register("isSubmissionOpen")}
-                    className="h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
+                    className="mt-1 h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
                   />
                   <div>
                     <span className="block text-sm font-medium text-white">Submission Form Enabled</span>
-                    <span className="text-xs text-gray-500">Allow participants to submit project links</span>
+                    <span className="text-xs text-gray-500">Allow participants to submit project repository links.</span>
                   </div>
                 </label>
               </div>
@@ -836,20 +874,6 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
                   <span className="font-semibold text-white">{watch("visibility")}</span>
                 </div>
               </div>
-
-              <div className="pt-6 border-t border-white/5">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register("isPublished")}
-                    className="h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <div>
-                    <span className="block text-sm font-medium text-white">Publish Event Globally</span>
-                    <span className="text-xs text-gray-500">If checked, participants will immediately see this event on the public marketplace.</span>
-                  </div>
-                </label>
-              </div>
             </div>
           </div>
         )}
@@ -880,6 +904,7 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
 
             {step < 6 ? (
               <button
+                key="btn-continue"
                 type="button"
                 onClick={handleNext}
                 className="flex h-12 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:bg-indigo-500"
@@ -889,6 +914,7 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
               </button>
             ) : (
               <button
+                key="btn-save"
                 type="submit"
                 disabled={isPending}
                 className="flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 px-8 text-sm font-semibold text-white shadow-lg shadow-emerald-600/25 transition-all hover:from-emerald-500 hover:to-teal-400"

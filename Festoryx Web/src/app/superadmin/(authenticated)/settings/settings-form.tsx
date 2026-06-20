@@ -162,7 +162,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   const tabs = [
     { id: "general", label: "General", icon: Info },
     { id: "branding", label: "Branding", icon: Image },
-    { id: "payment", label: "Payment & QR", icon: CreditCard },
     { id: "contact", label: "Contact & Footer", icon: Mail },
   ];
 
@@ -234,28 +233,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   placeholder="Innovate. Compete. Excel."
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Countdown Date (IST)</label>
-                <div className="mt-2 flex gap-2">
-                  <input
-                    type="datetime-local"
-                    {...register("countdownDate")}
-                    className="flex-1 rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleResetCountdown}
-                    disabled={isResettingCountdown}
-                    title="Reset / Clear countdown"
-                    className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-400 transition-all hover:bg-rose-500/20 hover:border-rose-500/30 disabled:opacity-50"
-                  >
-                    {isResettingCountdown ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-                    Reset
-                  </button>
-                </div>
-                <p className="mt-1 text-xs text-gray-400">Countdown timer target date and time. Click Reset to clear it.</p>
               </div>
             </div>
 
@@ -421,57 +398,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           </div>
         )}
 
-        {/* PAYMENT TAB */}
-        {activeTab === "payment" && (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md space-y-6">
-            <h3 className="font-heading text-lg font-semibold text-white border-b border-white/5 pb-2">
-              Payment Configurations
-            </h3>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300">Payment QR Code Image</label>
-              <div className="mt-2 flex gap-3 max-w-md">
-                <input
-                  type="text"
-                  {...register("paymentQrCodeUrl")}
-                  className="flex-1 rounded-xl border border-white/10 bg-[#16213e] px-4 py-2.5 text-xs text-white focus:outline-none"
-                  placeholder="https://cloudinary.com/..."
-                />
-                <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 text-xs font-semibold text-white hover:bg-white/10 transition-all">
-                  {uploads.paymentQrCodeUrl ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4" />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleImageUpload(e, "paymentQrCodeUrl", "festoryx/qr-codes")}
-                    disabled={uploads.paymentQrCodeUrl}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              {watchQrCode && (
-                <img
-                  src={watchQrCode}
-                  alt="QR Code preview"
-                  className="mt-4 rounded-xl border border-white/10 h-64 w-64 object-contain bg-white p-2"
-                />
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300">Payment Instructions</label>
-              <textarea
-                rows={5}
-                {...register("paymentInstructions")}
-                className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="Include UPI ID, account number, bank details, and step-by-step instructions..."
-              />
-            </div>
-          </div>
-        )}
+        {/* Payment tab removed for superadmin settings */}
 
         {/* CONTACT & FOOTER */}
         {activeTab === "contact" && (

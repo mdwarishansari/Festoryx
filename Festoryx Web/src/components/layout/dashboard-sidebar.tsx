@@ -42,7 +42,6 @@ const navItems = [
   { label: "Messages", href: "/dashboard/messages", icon: Mail },
   { label: "Broadcast Email", href: "/dashboard/broadcast", icon: Send },
   { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
-  { label: "About Cards", href: "/dashboard/about", icon: Info },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
   { label: "Quiz Arena", href: "http://localhost:3002/admin", icon: Flame, isExternal: true },
   { label: "Export", href: "/dashboard/export", icon: Download },

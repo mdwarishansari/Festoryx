@@ -22,9 +22,9 @@ export const metadata: Metadata = {
   title: "Festoryx Quiz Arena — Live Real-Time Interactive Competition Suite",
   description: "Festoryx Quiz Arena is the live real-time interactive quiz operating system for communities, community hubs, community colleges, and community hackathons.",
   icons: {
-    icon: "/LogoGIF.gif",
-    shortcut: "/LogoGIF.gif",
-    apple: "/LogoGIF.gif",
+    icon: "/Logo.gif",
+    shortcut: "/Logo.gif",
+    apple: "/Logo.gif",
   },
 };
 

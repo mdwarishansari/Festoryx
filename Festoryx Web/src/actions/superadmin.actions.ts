@@ -186,3 +186,41 @@ export async function getSuperAdminWinners() {
     return [];
   }
 }
+
+export async function getSuperAdminEventsPaginated(page = 1, pageSize = 10) {
+  await verifySuperAdmin();
+  try {
+    const skip = (page - 1) * pageSize;
+    const [events, total] = await Promise.all([
+      prisma.event.findMany({
+        orderBy: { createdAt: "desc" },
+        include: {
+          organization: {
+            select: {
+              name: true,
+              slug: true,
+            },
+          },
+          _count: { select: { registrations: true } },
+        },
+        skip,
+        take: pageSize,
+      }),
+      prisma.event.count(),
+    ]);
+    return {
+      events: serializePrisma(events),
+      total,
+      pages: Math.ceil(total / pageSize),
+      currentPage: page,
+    };
+  } catch (error) {
+    console.error("Error fetching superadmin events paginated:", error);
+    return {
+      events: [],
+      total: 0,
+      pages: 0,
+      currentPage: page,
+    };
+  }
+}

@@ -57,6 +57,7 @@ model Organization {
   submissions         Submission[]
   formFields          FormFieldConfig[]
   quizzes             Quiz[]
+  queries             OrgQuery[]
 }
 
 enum OrgStatus {
@@ -692,4 +693,20 @@ enum EventStatus {
   PUBLISHED
   ARCHIVED
 }
+
+model OrgQuery {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  email          String
+  subject        String
+  message        String       @db.Text
+  status         String       @default("PENDING") // PENDING, RESPONDED, CLOSED
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+}
+
 

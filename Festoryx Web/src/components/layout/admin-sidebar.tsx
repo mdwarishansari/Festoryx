@@ -35,7 +35,6 @@ const navItems = [
   { label: "Organizations", href: "/superadmin/organizations", icon: Building2 },
   { label: "Events", href: "/superadmin/events", icon: Calendar },
   { label: "Registrations", href: "/superadmin/registrations", icon: Users },
-  { label: "Winners", href: "/superadmin/winners", icon: Trophy },
   { label: "Payments", href: "/superadmin/payments", icon: CreditCard },
   { label: "Messages", href: "/superadmin/messages", icon: Mail },
   { label: "Broadcast Email", href: "/superadmin/broadcast", icon: Send },

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createOrganization } from "@/actions/organization.actions";
 import { toast } from "sonner";
 import { Upload, Loader2, Link2, Instagram, Linkedin, Youtube, MessageCircle, Building2 } from "lucide-react";
+import { getOrgTypeEmoji } from "@/lib/utils";
 
 export function OnboardingForm() {
   const router = useRouter();
@@ -29,6 +30,18 @@ export function OnboardingForm() {
       whatsapp: "",
     },
   });
+
+  const dynamicLabel = formData.type === "company" || formData.type === "startup" 
+    ? "Company Name *" 
+    : formData.type === "college" || formData.type === "university"
+    ? "Institution Name *"
+    : "Organization Name *";
+
+  const dynamicPlaceholder = formData.type === "company" || formData.type === "startup"
+    ? "e.g. Acme Corporation, TechStart Inc."
+    : formData.type === "college" || formData.type === "university"
+    ? "e.g. Harvard University, MIT"
+    : "e.g. Computer Science Club, Alpha Tech";
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,13 +109,13 @@ export function OnboardingForm() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-[#a8a6b7] mb-1.5">
-              Organization Name *
+              {dynamicLabel}
             </label>
             <input
               type="text"
               required
               className="w-full px-4 py-2.5 bg-[#030014] border border-white/10 rounded-[5px] focus:outline-none focus:border-[#9382ff] text-[#f4f0ff] placeholder-[#54525f] text-sm"
-              placeholder="e.g. Computer Science Club, Alpha Tech"
+              placeholder={dynamicPlaceholder}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
@@ -234,8 +247,8 @@ export function OnboardingForm() {
                   className="h-10 w-10 rounded-full border border-white/10 object-cover"
                 />
               ) : (
-                <div className="h-10 w-10 rounded-full border border-dashed border-white/10 flex items-center justify-center bg-[#030014]">
-                  <Building2 className="h-4 w-4 text-gray-500" />
+                <div className="h-10 w-10 rounded-full border border-dashed border-white/10 flex items-center justify-center bg-[#030014] text-lg">
+                  {getOrgTypeEmoji(formData.type)}
                 </div>
               )}
               <label className="flex h-10 cursor-pointer items-center gap-2 justify-center rounded-[5px] border border-white/10 bg-white/5 px-4 text-xs font-semibold text-white hover:bg-white/10 transition-all">

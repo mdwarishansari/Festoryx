@@ -156,3 +156,21 @@ export function parseToISTDate(dateStr: string | null | undefined): Date | null 
   return isNaN(d.getTime()) ? null : d;
 }
 
+export function getOrgTypeEmoji(type: string | null | undefined): string {
+  switch (type?.toLowerCase()) {
+    case "college":
+    case "university":
+      return "🎓";
+    case "company":
+    case "startup":
+      return "💼";
+    case "community":
+      return "🌐";
+    case "club":
+      return "👥";
+    default:
+      return "🏢";
+  }
+}
+
+

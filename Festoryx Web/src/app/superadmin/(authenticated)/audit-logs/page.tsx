@@ -1,26 +1,53 @@
 import { prisma } from "@/lib/prisma";
 import { requireAuth, isSuperAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { History, User, Building2, Calendar, Database } from "lucide-react";
-import { formatDate, formatDateTime } from "@/lib/utils";
+import { History, User as UserIcon, Building2, Database } from "lucide-react";
+import { formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function SuperAdminAuditLogsPage() {
+interface PageProps {
+  searchParams: Promise<{ page?: string }> | { page?: string };
+}
+
+export default async function SuperAdminAuditLogsPage({ searchParams }: PageProps) {
   const user = await requireAuth();
 
   if (!isSuperAdmin(user)) {
     redirect("/dashboard");
   }
 
-  // Fetch all audit logs with relations
+  // Auto-purge logs older than 30 days
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    await prisma.auditLog.deleteMany({
+      where: {
+        createdAt: {
+          lt: thirtyDaysAgo,
+        },
+      },
+    });
+  } catch (err) {
+    console.error("Failed to auto-purge stale audit logs:", err);
+  }
+
+  const resolvedParams = await searchParams;
+  const page = resolvedParams?.page ? parseInt(resolvedParams.page, 10) : 1;
+  const pageSize = 15;
+
+  const totalLogs = await prisma.auditLog.count();
+  const totalPages = Math.ceil(totalLogs / pageSize);
+
+  // Fetch paginated audit logs with relations
   const logs = await prisma.auditLog.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       user: true,
       organization: true,
     },
-    take: 100, // Limit to 100 most recent logs
+    skip: (page - 1) * pageSize,
+    take: pageSize,
   });
 
   return (
@@ -74,7 +101,7 @@ export default async function SuperAdminAuditLogsPage() {
                       <td className="px-6 py-4">
                         {log.user ? (
                           <div className="flex items-center gap-2">
-                            <User className="h-3.5 w-3.5 text-gray-500 shrink-0" />
+                            <UserIcon className="h-3.5 w-3.5 text-gray-500 shrink-0" />
                             <div className="flex flex-col">
                               <span className="text-white font-medium text-xs">{log.user.name}</span>
                               <span className="text-[10px] text-gray-500 font-mono">{log.user.email}</span>
@@ -122,6 +149,82 @@ export default async function SuperAdminAuditLogsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-white/10 px-6 py-4 bg-white/5">
+              <div className="flex flex-1 justify-between sm:hidden">
+                {page > 1 ? (
+                  <a
+                    href={`?page=${page - 1}`}
+                    className="relative inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+                  >
+                    Previous
+                  </a>
+                ) : (
+                  <span className="relative inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-gray-500 cursor-not-allowed">
+                    Previous
+                  </span>
+                )}
+                {page < totalPages ? (
+                  <a
+                    href={`?page=${page + 1}`}
+                    className="relative ml-3 inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+                  >
+                    Next
+                  </a>
+                ) : (
+                  <span className="relative ml-3 inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-gray-500 cursor-not-allowed">
+                    Next
+                  </span>
+                )}
+              </div>
+              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">
+                    Showing <span className="font-semibold text-white">{(page - 1) * pageSize + 1}</span> to{" "}
+                    <span className="font-semibold text-white">
+                      {Math.min(page * pageSize, totalLogs)}
+                    </span>{" "}
+                    of <span className="font-semibold text-white">{totalLogs}</span> logs
+                  </p>
+                </div>
+                <div>
+                  <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    {page > 1 ? (
+                      <a
+                        href={`?page=${page - 1}`}
+                        className="relative inline-flex items-center rounded-l-md px-3 py-2 text-sm font-medium text-gray-400 ring-1 ring-inset ring-white/10 hover:bg-white/10"
+                      >
+                        Previous
+                      </a>
+                    ) : (
+                      <span className="relative inline-flex items-center rounded-l-md px-3 py-2 text-sm font-medium text-gray-600 ring-1 ring-inset ring-white/10 cursor-not-allowed">
+                        Previous
+                      </span>
+                    )}
+
+                    <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-white/10 bg-indigo-600">
+                      {page}
+                    </span>
+
+                    {page < totalPages ? (
+                      <a
+                        href={`?page=${page + 1}`}
+                        className="relative inline-flex items-center rounded-r-md px-3 py-2 text-sm font-medium text-gray-400 ring-1 ring-inset ring-white/10 hover:bg-white/10"
+                      >
+                        Next
+                      </a>
+                    ) : (
+                      <span className="relative inline-flex items-center rounded-r-md px-3 py-2 text-sm font-medium text-gray-600 ring-1 ring-inset ring-white/10 cursor-not-allowed">
+                        Next
+                      </span>
+                    )}
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

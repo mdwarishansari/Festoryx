@@ -21,11 +21,19 @@ export function ExportPanel({ events }: ExportPanelProps) {
   const getDownloadUrl = () => {
     const params = new URLSearchParams();
     params.set("type", exportType);
-    if (eventId && eventId !== "ALL") params.set("eventId", eventId);
-    if (exportType === "registrations" && paymentStatus && paymentStatus !== "ALL") {
-      params.set("paymentStatus", paymentStatus);
+    if (exportType !== "platform") {
+      if (eventId && eventId !== "ALL") params.set("eventId", eventId);
+      if (exportType === "registrations" && paymentStatus && paymentStatus !== "ALL") {
+        params.set("paymentStatus", paymentStatus);
+      }
     }
     return `/api/export?${params.toString()}`;
+  };
+
+  const getFilename = () => {
+    if (exportType === "platform") return "festoryx-full-platform.xlsx";
+    if (exportType === "submissions") return "festoryx-submissions.xlsx";
+    return "festoryx-registrations.xlsx";
   };
 
   return (
@@ -55,27 +63,30 @@ export function ExportPanel({ events }: ExportPanelProps) {
           >
             <option value="registrations">Registrations (Default)</option>
             <option value="submissions">Project Submissions</option>
+            <option value="platform">Full Platform Export</option>
           </select>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5 flex items-center gap-1">
-            <Filter className="h-3 w-3" />
-            <span>Filter by Competition</span>
-          </label>
-          <select
-            value={eventId}
-            onChange={(e) => setEventId(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-sm text-white focus:outline-none"
-          >
-            <option value="ALL">All Competitions (Export everything)</option>
-            {events.map((evt) => (
-              <option key={evt.id} value={evt.id}>
-                {evt.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {exportType !== "platform" && (
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5 flex items-center gap-1">
+              <Filter className="h-3 w-3" />
+              <span>Filter by Competition</span>
+            </label>
+            <select
+              value={eventId}
+              onChange={(e) => setEventId(e.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-sm text-white focus:outline-none"
+            >
+              <option value="ALL">All Competitions (Export everything)</option>
+              {events.map((evt) => (
+                <option key={evt.id} value={evt.id}>
+                  {evt.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {exportType === "registrations" && (
           <div>
@@ -101,7 +112,7 @@ export function ExportPanel({ events }: ExportPanelProps) {
       <div className="pt-4 border-t border-white/5">
         <a
           href={getDownloadUrl()}
-          download={exportType === "registrations" ? "festoryx-registrations.xlsx" : "festoryx-submissions.xlsx"}
+          download={getFilename()}
           className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all hover:scale-[1.01] hover:shadow-indigo-500/35"
         >
           <Download className="h-4 w-4" />

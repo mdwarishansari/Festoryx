@@ -1,8 +1,12 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { CosmicBackground } from "@/components/ui/cosmic-background";
 import Link from "next/link";
-import { Calendar, Globe, Mail, Phone, ExternalLink } from "lucide-react";
+import { Calendar, Globe, Mail, Phone, ExternalLink, Trophy, Instagram, Linkedin, Youtube, MessageCircle, MapPin } from "lucide-react";
+import { getOrgTypeEmoji } from "@/lib/utils";
+import { OrgQueryForm } from "./org-query-form";
 
 interface OrgProfilePageProps {
   params: Promise<{
@@ -21,6 +25,11 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
           isPublished: true,
           visibility: "PUBLIC",
         },
+        include: {
+          winner1: true,
+          winner2: true,
+          winner3: true,
+        },
         orderBy: { sortOrder: "asc" },
       },
     },
@@ -29,6 +38,13 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
   if (!org) {
     notFound();
   }
+
+  // Filter events that have winners assigned
+  const eventsWithWinners = org.events.filter(
+    (e) => e.winner1Id || e.winner2Id || e.winner3Id
+  );
+
+  const socials = (org.socialLinks as any) || {};
 
   return (
     <div className="min-h-screen bg-transparent text-[#f4f0ff] font-sans relative">
@@ -49,7 +65,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
             {org.logoUrl ? (
               <img src={org.logoUrl} alt={org.name} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-4xl text-[#9382ff]">🏢</span>
+              <span className="text-4xl text-[#9382ff]">{getOrgTypeEmoji(org.type)}</span>
             )}
           </div>
 
@@ -60,7 +76,10 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
                 {org.type}
               </span>
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">{org.name}</h1>
-              <p className="text-sm text-gray-500 mt-1">{org.city}, {org.state}</p>
+              <p className="text-sm text-gray-500 mt-1 flex items-center justify-center md:justify-start gap-1">
+                <MapPin className="w-3.5 h-3.5 text-gray-600" />
+                <span>{org.city}, {org.state}</span>
+              </p>
             </div>
 
             <p className="text-[#94a3b8] text-sm md:text-base leading-relaxed max-w-2xl">{org.description}</p>
@@ -83,6 +102,36 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
                 <span>{org.phone}</span>
               </a>
             </div>
+
+            {/* Social Links */}
+            {(socials.instagram || socials.linkedin || socials.youtube || socials.whatsapp) && (
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-2 border-t border-white/5 text-xs text-gray-400">
+                {socials.instagram && (
+                  <a href={socials.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-indigo-400 transition-colors">
+                    <Instagram className="w-3.5 h-3.5 text-[#e1306c]" />
+                    <span>Instagram</span>
+                  </a>
+                )}
+                {socials.linkedin && (
+                  <a href={socials.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-indigo-400 transition-colors">
+                    <Linkedin className="w-3.5 h-3.5 text-[#0a66c2]" />
+                    <span>LinkedIn</span>
+                  </a>
+                )}
+                {socials.youtube && (
+                  <a href={socials.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-indigo-400 transition-colors">
+                    <Youtube className="w-3.5 h-3.5 text-[#ff0000]" />
+                    <span>YouTube</span>
+                  </a>
+                )}
+                {socials.whatsapp && (
+                  <a href={`https://wa.me/${socials.whatsapp}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-indigo-400 transition-colors">
+                    <MessageCircle className="w-3.5 h-3.5 text-[#25d366]" />
+                    <span>WhatsApp</span>
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -142,6 +191,51 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
           )}
         </div>
 
+        {/* Winners Arena Section */}
+        {eventsWithWinners.length > 0 && (
+          <div className="space-y-6 pt-6 border-t border-white/5">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                <Trophy className="w-6 h-6 text-amber-400" />
+                <span>Winners Arena</span>
+              </h2>
+              <p className="text-xs text-[#64748b] mt-0.5">Celebrate the champions of our recent competitions</p>
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              {eventsWithWinners.map((event) => (
+                <div key={event.id} className="bg-[#060317]/50 border border-white/10 rounded-2xl p-6 space-y-4 backdrop-blur-md">
+                  <h3 className="font-bold text-white text-base border-b border-white/5 pb-2">{event.name}</h3>
+                  <div className="space-y-3">
+                    {event.winner1 && (
+                      <div className="flex items-center justify-between text-xs bg-amber-500/10 border border-amber-500/20 rounded-lg p-2">
+                        <span className="font-semibold text-amber-400">🥇 1st Place</span>
+                        <span className="font-medium text-white">{event.winner1.participantName}</span>
+                      </div>
+                    )}
+                    {event.winner2 && (
+                      <div className="flex items-center justify-between text-xs bg-slate-400/10 border border-slate-400/20 rounded-lg p-2">
+                        <span className="font-semibold text-slate-300">🥈 2nd Place</span>
+                        <span className="font-medium text-white">{event.winner2.participantName}</span>
+                      </div>
+                    )}
+                    {event.winner3 && (
+                      <div className="flex items-center justify-between text-xs bg-amber-700/10 border border-amber-700/20 rounded-lg p-2">
+                        <span className="font-semibold text-amber-600">🥉 3rd Place</span>
+                        <span className="font-medium text-white">{event.winner3.participantName}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Contact Form and Query Support Form */}
+        <div className="pt-6 border-t border-white/5">
+          <OrgQueryForm orgSlug={org.slug} />
+        </div>
       </div>
     </div>
   );

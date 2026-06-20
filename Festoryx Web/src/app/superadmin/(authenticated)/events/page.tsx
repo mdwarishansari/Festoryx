@@ -1,10 +1,18 @@
-import { getSuperAdminEvents } from "@/actions/superadmin.actions";
+import { getSuperAdminEventsPaginated } from "@/actions/superadmin.actions";
 import { AdminEventActions } from "./admin-event-actions";
 import Link from "next/link";
-import { Plus, Trophy, Calendar, Sparkles } from "lucide-react";
+import { Plus, Trophy, Calendar } from "lucide-react";
 
-export default async function AdminEventsListPage() {
-  const events = await getSuperAdminEvents();
+interface PageProps {
+  searchParams: Promise<{ page?: string }> | { page?: string };
+}
+
+export default async function AdminEventsListPage({ searchParams }: PageProps) {
+  const resolvedParams = await searchParams;
+  const page = resolvedParams?.page ? parseInt(resolvedParams.page, 10) : 1;
+  const pageSize = 10;
+
+  const { events, total, pages } = await getSuperAdminEventsPaginated(page, pageSize);
 
   return (
     <div className="space-y-8">
@@ -51,8 +59,10 @@ export default async function AdminEventsListPage() {
               <thead className="border-b border-white/10 bg-white/5 text-[11px] font-bold uppercase tracking-wider text-gray-400">
                 <tr>
                   <th className="px-6 py-4">Competition Name</th>
+                  <th className="px-6 py-4">Host Org</th>
                   <th className="px-6 py-4">Participation Type</th>
                   <th className="px-6 py-4">Per Participant Fee</th>
+                  <th className="px-6 py-4">Schedule Date</th>
                   <th className="px-6 py-4 text-center">Registrations</th>
                   <th className="px-6 py-4">Status</th>
                   <th className="px-6 py-4 text-right">Actions</th>
@@ -74,13 +84,19 @@ export default async function AdminEventsListPage() {
                           </span>
                         </div>
                       </td>
+                      <td className="px-6 py-4 text-xs font-medium text-gray-300">
+                        {event.organization?.name || "-"}
+                      </td>
                       <td className="px-6 py-4 font-medium">
                         <span className="rounded-md bg-white/5 border border-white/10 px-2.5 py-1 text-xs">
                           {event.participationType}
                         </span>
                       </td>
-                      <td className="px-6 py-4 font-semibold">
+                      <td className="px-6 py-4 font-semibold text-xs">
                         {fee === 0 ? "Free" : `₹${fee}`}
+                      </td>
+                      <td className="px-6 py-4 text-xs text-gray-400">
+                        {event.eventDate ? new Date(event.eventDate).toLocaleDateString("en-IN") : "-"}
                       </td>
                       <td className="px-6 py-4 text-center font-bold text-indigo-400">
                         {event._count.registrations}
@@ -112,6 +128,82 @@ export default async function AdminEventsListPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {pages > 1 && (
+            <div className="flex items-center justify-between border-t border-white/10 px-6 py-4 bg-white/5">
+              <div className="flex flex-1 justify-between sm:hidden">
+                {page > 1 ? (
+                  <a
+                    href={`?page=${page - 1}`}
+                    className="relative inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+                  >
+                    Previous
+                  </a>
+                ) : (
+                  <span className="relative inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-gray-500 cursor-not-allowed">
+                    Previous
+                  </span>
+                )}
+                {page < pages ? (
+                  <a
+                    href={`?page=${page + 1}`}
+                    className="relative ml-3 inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+                  >
+                    Next
+                  </a>
+                ) : (
+                  <span className="relative ml-3 inline-flex items-center rounded-md border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-gray-500 cursor-not-allowed">
+                    Next
+                  </span>
+                )}
+              </div>
+              <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-400">
+                    Showing <span className="font-semibold text-white">{(page - 1) * pageSize + 1}</span> to{" "}
+                    <span className="font-semibold text-white">
+                      {Math.min(page * pageSize, total)}
+                    </span>{" "}
+                    of <span className="font-semibold text-white">{total}</span> events
+                  </p>
+                </div>
+                <div>
+                  <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                    {page > 1 ? (
+                      <a
+                        href={`?page=${page - 1}`}
+                        className="relative inline-flex items-center rounded-l-md px-3 py-2 text-sm font-medium text-gray-400 ring-1 ring-inset ring-white/10 hover:bg-white/10"
+                      >
+                        Previous
+                      </a>
+                    ) : (
+                      <span className="relative inline-flex items-center rounded-l-md px-3 py-2 text-sm font-medium text-gray-600 ring-1 ring-inset ring-white/10 cursor-not-allowed">
+                        Previous
+                      </span>
+                    )}
+
+                    <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-white/10 bg-indigo-600">
+                      {page}
+                    </span>
+
+                    {page < pages ? (
+                      <a
+                        href={`?page=${page + 1}`}
+                        className="relative inline-flex items-center rounded-r-md px-3 py-2 text-sm font-medium text-gray-400 ring-1 ring-inset ring-white/10 hover:bg-white/10"
+                      >
+                        Next
+                      </a>
+                    ) : (
+                      <span className="relative inline-flex items-center rounded-r-md px-3 py-2 text-sm font-medium text-gray-600 ring-1 ring-inset ring-white/10 cursor-not-allowed">
+                        Next
+                      </span>
+                    )}
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
