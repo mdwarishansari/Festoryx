@@ -43,9 +43,9 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
     },
     icons: {
-      icon: "/LogoGIF.gif",
-      shortcut: "/LogoGIF.gif",
-      apple: "/LogoGIF.gif",
+      icon: "/Logo.gif",
+      shortcut: "/Logo.gif",
+      apple: "/Logo.gif",
     },
   };
 }

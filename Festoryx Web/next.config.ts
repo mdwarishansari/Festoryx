@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  async rewrites() {
+    return [
+      {
+        source: "/api/socket-health",
+        destination: `${process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001"}/health`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

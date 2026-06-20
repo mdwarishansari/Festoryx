@@ -1,18 +1,32 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+
+interface Star {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  duration: number;
+  delay: number;
+}
 
 export function CosmicBackground() {
-  // Generate a list of stars with random positions and animation properties
-  const starsCount = 45;
-  const stars = Array.from({ length: starsCount }).map((_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 1.8 + 0.6,
-    duration: Math.random() * 4 + 3,
-    delay: Math.random() * 5,
-  }));
+  const [stars, setStars] = useState<Star[]>([]);
+
+  useEffect(() => {
+    const starsCount = 45;
+    const generatedStars = Array.from({ length: starsCount }).map((_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 1.8 + 0.6,
+      duration: Math.random() * 4 + 3,
+      delay: Math.random() * 5,
+    }));
+    setStars(generatedStars);
+  }, []);
 
   return (
     <div className="fixed inset-0 -z-50 overflow-hidden bg-[#030014] pointer-events-none">
