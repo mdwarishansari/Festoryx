@@ -3,7 +3,7 @@
 > A millisecond-precision real-time quiz tournament engine, live lobby controller, and big-screen projector system powered by Next.js 16 and a high-performance Socket.IO Node.js relay server.
 
 Developed by **[mdwarishansari](https://github.com/mdwarishansari/)** 🧑‍💻
-
+SOCKET URL - (https://festoryx-socket.onrender.com)
 ---
 
 ## 🌟 Introduction & Live Tournament Overview
