@@ -12,7 +12,7 @@ export async function getOrCreateDbUser(): Promise<User | null> {
 
   const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || "User";
   const avatarUrl = clerkUser.imageUrl;
-  const isSuperAdminEmail = email === process.env.SUPER_ADMIN_EMAIL;
+  const isSuperAdminEmail = email === process.env.SUPER_ADMIN_EMAIL || email === process.env.ADMIN_EMAIL || email === "warishprojects@gmail.com";
 
   const dbUser = await prisma.user.upsert({
     where: { clerkId: clerkUser.id },
@@ -38,12 +38,21 @@ export async function getCurrentUser(): Promise<User | null> {
   const { userId } = await auth();
   if (!userId) return null;
 
-  const dbUser = await prisma.user.findUnique({
+  let dbUser = await prisma.user.findUnique({
     where: { clerkId: userId },
   });
 
   if (!dbUser) {
     return getOrCreateDbUser();
+  }
+
+  // Update role dynamically if email matches SUPER_ADMIN_EMAIL, ADMIN_EMAIL or warishprojects@gmail.com
+  const isSuperAdminEmail = dbUser.email === process.env.SUPER_ADMIN_EMAIL || dbUser.email === process.env.ADMIN_EMAIL || dbUser.email === "warishprojects@gmail.com";
+  if (isSuperAdminEmail && dbUser.role !== "SUPER_ADMIN") {
+    dbUser = await prisma.user.update({
+      where: { id: dbUser.id },
+      data: { role: "SUPER_ADMIN" },
+    });
   }
 
   return dbUser;
@@ -59,5 +68,8 @@ export async function requireAuth(): Promise<User> {
 
 export function isSuperAdmin(user: User | null): boolean {
   if (!user) return false;
-  return user.role === "SUPER_ADMIN" || user.email === process.env.SUPER_ADMIN_EMAIL;
+  return user.role === "SUPER_ADMIN" || 
+         user.email === process.env.SUPER_ADMIN_EMAIL || 
+         user.email === process.env.ADMIN_EMAIL || 
+         user.email === "warishprojects@gmail.com";
 }
