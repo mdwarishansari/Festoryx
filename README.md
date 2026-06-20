@@ -4,8 +4,8 @@
   <p><strong>The Production-Minded Event Operating System & Real-Time Competition SaaS</strong></p>
 
   <p>
-    <a href="https://festoryx-warish.vercel.app" target="_blank">
-      <img src="https://img.shields.io/badge/Live%20Demo-festoryx--warish.vercel.app-blueviolet?style=for-the-badge&logo=vercel" alt="Live Demo" />
+    <a href="https://festoryx.vercel.app" target="_blank">
+      <img src="https://img.shields.io/badge/Live%20Demo-festoryx.vercel.app-blueviolet?style=for-the-badge&logo=vercel" alt="Live Demo" />
     </a>
   </p>
 

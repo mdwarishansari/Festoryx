@@ -43,7 +43,7 @@ export async function getEmailBranding(organizationId?: string): Promise<EmailBr
         const orgSettings = org.settings;
         const socialLinks = orgSettings?.socialLinks as any;
         return {
-          logoUrl: org.logoUrl || "https://festoryx-warish.vercel.app/Logo.gif",
+          logoUrl: org.logoUrl || "https://festoryx.vercel.app/Logo.gif",
           siteName: org.name,
           contactEmail: orgSettings?.contactEmail || org.email,
           footerText: `© ${new Date().getFullYear()} ${org.name}. All rights reserved.`,
@@ -59,7 +59,7 @@ export async function getEmailBranding(organizationId?: string): Promise<EmailBr
       const orgSettings = firstOrg.settings;
       const socialLinks = orgSettings?.socialLinks as any;
       return {
-        logoUrl: firstOrg.logoUrl || "https://festoryx-warish.vercel.app/Logo.gif",
+        logoUrl: firstOrg.logoUrl || "https://festoryx.vercel.app/Logo.gif",
         siteName: firstOrg.name,
         contactEmail: orgSettings?.contactEmail || firstOrg.email,
         footerText: `© ${new Date().getFullYear()} ${firstOrg.name}. All rights reserved.`,
@@ -68,7 +68,7 @@ export async function getEmailBranding(organizationId?: string): Promise<EmailBr
     }
 
     return {
-      logoUrl: "https://festoryx-warish.vercel.app/Logo.gif",
+      logoUrl: "https://festoryx.vercel.app/Logo.gif",
       siteName: "Festoryx",
       contactEmail: process.env.SMTP_EMAIL || "support@festoryx.com",
       footerText: `© ${new Date().getFullYear()} Festoryx. All rights reserved.`,
@@ -76,7 +76,7 @@ export async function getEmailBranding(organizationId?: string): Promise<EmailBr
     };
   } catch {
     return {
-      logoUrl: "https://festoryx-warish.vercel.app/Logo.gif",
+      logoUrl: "https://festoryx.vercel.app/Logo.gif",
       siteName: "Festoryx",
       contactEmail: process.env.SMTP_EMAIL || "support@festoryx.com",
       footerText: "© 2026 Festoryx. All rights reserved.",
