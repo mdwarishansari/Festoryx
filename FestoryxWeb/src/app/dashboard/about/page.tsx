@@ -1,12 +1,12 @@
 import { getAboutCards } from "@/actions/about.actions";
-import { getSettings } from "@/actions/settings.actions";
+import { getOrgSettings } from "@/actions/settings.actions";
 import AboutCardsClient from "./about-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminAboutPage() {
   const cards = await getAboutCards();
-  const settings = await getSettings();
+  const settings = await getOrgSettings();
 
   return (
     <div className="space-y-6 max-w-5xl">

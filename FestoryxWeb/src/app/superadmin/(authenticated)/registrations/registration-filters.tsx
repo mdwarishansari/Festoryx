@@ -19,20 +19,22 @@ export function RegistrationFiltersClient({ events }: RegistrationFiltersClientP
   const [isPending, startTransition] = useTransition();
 
   const [search, setSearch] = useState(searchParams.get("search") || "");
+  const [token, setToken] = useState(searchParams.get("token") || "");
   const [eventId, setEventId] = useState(searchParams.get("eventId") || "ALL");
   const [paymentStatus, setPaymentStatus] = useState(searchParams.get("paymentStatus") || "ALL");
   const [status, setStatus] = useState(searchParams.get("status") || "ALL");
 
-  function applyFilters(newSearch = search, newEvent = eventId, newPayment = paymentStatus, newStatus = status) {
+  function applyFilters(newSearch = search, newToken = token, newEvent = eventId, newPayment = paymentStatus, newStatus = status) {
     startTransition(() => {
       const params = new URLSearchParams();
       if (newSearch) params.set("search", newSearch);
+      if (newToken) params.set("token", newToken);
       if (newEvent && newEvent !== "ALL") params.set("eventId", newEvent);
       if (newPayment && newPayment !== "ALL") params.set("paymentStatus", newPayment);
       if (newStatus && newStatus !== "ALL") params.set("status", newStatus);
       params.set("page", "1"); // Reset to page 1 on filter change
 
-      router.push(`/admin/registrations?${params.toString()}`);
+      router.push(`/superadmin/registrations?${params.toString()}`);
     });
   }
 
@@ -43,22 +45,33 @@ export function RegistrationFiltersClient({ events }: RegistrationFiltersClientP
 
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-md shadow-lg space-y-4">
-      <form onSubmit={handleSearchSubmit} className="flex gap-4">
-        {/* Search */}
-        <div className="relative flex-1">
+      <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-4">
+        {/* Simple Search */}
+        <div className="relative flex-grow">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-xl border border-white/10 bg-[#16213e] pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
-            placeholder="Search by name, email, phone, or Registration ID..."
+            placeholder="Search by name, email, or phone..."
+          />
+        </div>
+        {/* Token Search */}
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-indigo-400/80" />
+          <input
+            type="text"
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-[#16213e] pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-indigo-500 focus:outline-none"
+            placeholder="Search by Registration ID..."
           />
         </div>
         <button
           type="submit"
           disabled={isPending}
-          className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 disabled:opacity-50"
+          className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 disabled:opacity-50 md:w-auto w-full"
         >
           {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           <span>Search</span>
@@ -76,7 +89,7 @@ export function RegistrationFiltersClient({ events }: RegistrationFiltersClientP
             value={eventId}
             onChange={(e) => {
               setEventId(e.target.value);
-              applyFilters(search, e.target.value, paymentStatus, status);
+              applyFilters(search, token, e.target.value, paymentStatus, status);
             }}
             className="w-full rounded-xl border border-white/10 bg-[#16213e] px-3 py-2.5 text-xs text-white focus:outline-none"
           >
@@ -98,7 +111,7 @@ export function RegistrationFiltersClient({ events }: RegistrationFiltersClientP
             value={paymentStatus}
             onChange={(e) => {
               setPaymentStatus(e.target.value);
-              applyFilters(search, eventId, e.target.value, status);
+              applyFilters(search, token, eventId, e.target.value, status);
             }}
             className="w-full rounded-xl border border-white/10 bg-[#16213e] px-3 py-2.5 text-xs text-white focus:outline-none"
           >
@@ -118,7 +131,7 @@ export function RegistrationFiltersClient({ events }: RegistrationFiltersClientP
             value={status}
             onChange={(e) => {
               setStatus(e.target.value);
-              applyFilters(search, eventId, paymentStatus, e.target.value);
+              applyFilters(search, token, eventId, paymentStatus, e.target.value);
             }}
             className="w-full rounded-xl border border-white/10 bg-[#16213e] px-3 py-2.5 text-xs text-white focus:outline-none"
           >

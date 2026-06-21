@@ -43,7 +43,7 @@ const navItems = [
   { label: "Broadcast Email", href: "/dashboard/broadcast", icon: Send },
   { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
-  { label: "Quiz Arena", href: "http://localhost:3002/admin", icon: Flame, isExternal: true },
+  { label: "Quiz Arena", href: `${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "http://localhost:3002"}/admin`, icon: Flame, isExternal: true },
   { label: "Export", href: "/dashboard/export", icon: Download },
   { label: "Reset System", href: "/dashboard/reset", icon: RefreshCw },
 ];
@@ -132,11 +132,11 @@ export function DashboardSidebar({ adminName, adminEmail, avatarUrl, orgName }: 
       {/* Admin info & logout */}
       <div className="border-t border-white/10 p-4">
         <div className="mb-3 flex items-center gap-3">
-          <div className="h-9 w-9 overflow-hidden rounded-full border border-white/20">
+          <div className="h-9 w-9 overflow-hidden rounded-full border border-white/20 shrink-0 aspect-square">
             <img
               src={avatarUrl || "/Logo.gif"}
               alt="Profile"
-              className="h-full w-full object-cover rounded-full"
+              className="h-full w-full object-cover rounded-full shrink-0 aspect-square"
             />
           </div>
           <div className="min-w-0">

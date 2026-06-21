@@ -87,7 +87,7 @@ export async function getSuperAdminEvents() {
 export async function getSuperAdminRegistrations(filters: RegistrationFilters = {}) {
   await verifySuperAdmin();
   try {
-    const { eventId, paymentStatus, status, search, page = 1, pageSize = ITEMS_PER_PAGE } = filters;
+    const { eventId, paymentStatus, status, search, token, page = 1, pageSize = ITEMS_PER_PAGE } = filters;
 
     const where: Prisma.RegistrationWhereInput = {};
 
@@ -98,9 +98,11 @@ export async function getSuperAdminRegistrations(filters: RegistrationFilters = 
       where.OR = [
         { participantName: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
-        { registrationId: { contains: search, mode: "insensitive" } },
         { phone: { contains: search, mode: "insensitive" } },
       ];
+    }
+    if (token) {
+      where.registrationId = { contains: token, mode: "insensitive" };
     }
 
     const [registrations, total] = await Promise.all([

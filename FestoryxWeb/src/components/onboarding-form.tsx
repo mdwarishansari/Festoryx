@@ -219,7 +219,7 @@ export function OnboardingForm() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label className="block text-sm font-medium text-[#a8a6b7] mb-1.5">
-              Website URL
+              Website URL <span className="text-[10px] text-gray-500 font-normal">(Optional External Link)</span>
             </label>
             <div className="flex gap-2">
               <div className="relative flex-grow">

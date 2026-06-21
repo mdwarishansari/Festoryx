@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import type { ActionResponse, RegistrationFilters } from "@/types";
 import { formatDate, getPublicIdFromUrl } from "@/lib/utils";
 import { ITEMS_PER_PAGE } from "@/lib/constants";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -161,7 +161,11 @@ export async function submitRegistration(
         teamName: parsed.data.teamName || null,
         paymentReference: parsed.data.paymentReference || null,
         paymentScreenshot: paymentScreenshotUrl || null,
-        paymentAmount: event.registrationFee || null,
+        paymentAmount: event.registrationFee
+          ? event.feePerParticipant
+            ? new Prisma.Decimal(Number(event.registrationFee) * (1 + (parsed.data.teamMembers?.length || 0)))
+            : event.registrationFee
+          : null,
         notes: parsed.data.notes || null,
         status: "SUBMITTED",
         paymentStatus: event.registrationFee ? "PENDING" : "APPROVED",
@@ -213,7 +217,7 @@ export async function submitRegistration(
 export async function getRegistrations(filters: RegistrationFilters = {}) {
   try {
     const orgId = await getOrgIdForCurrentUser();
-    const { eventId, paymentStatus, status, search, page = 1, pageSize = ITEMS_PER_PAGE } = filters;
+    const { eventId, paymentStatus, status, search, token, page = 1, pageSize = ITEMS_PER_PAGE } = filters;
 
     const where: Prisma.RegistrationWhereInput = {
       organizationId: orgId,
@@ -226,9 +230,11 @@ export async function getRegistrations(filters: RegistrationFilters = {}) {
       where.OR = [
         { participantName: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
-        { registrationId: { contains: search, mode: "insensitive" } },
         { phone: { contains: search, mode: "insensitive" } },
       ];
+    }
+    if (token) {
+      where.registrationId = { contains: token, mode: "insensitive" };
     }
 
     const [registrations, total] = await Promise.all([

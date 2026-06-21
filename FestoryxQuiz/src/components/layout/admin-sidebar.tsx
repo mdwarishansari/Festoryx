@@ -119,11 +119,11 @@ export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
       {/* Admin info & logout */}
       <div className="border-t border-white/10 p-4">
         <div className="mb-3 flex items-center gap-3">
-          <div className="h-9 w-9 overflow-hidden rounded-full border border-white/20">
+          <div className="h-9 w-9 overflow-hidden rounded-full border border-white/20 shrink-0 aspect-square">
             <img
               src="/Logo.gif"
               alt="Admin Profile"
-              className="h-full w-full object-cover rounded-full"
+              className="h-full w-full object-cover rounded-full shrink-0 aspect-square"
             />
           </div>
           <div className="min-w-0">

@@ -97,6 +97,7 @@ model OrgSettings {
   contactEmail        String?
   contactPhone        String?
   socialLinks         Json?
+  showQuiz            Boolean      @default(false)
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 }
@@ -135,6 +136,7 @@ model Event {
   schedule             String?           @db.Text
   bannerUrl            String?
   registrationFee      Decimal?          @db.Decimal(10, 2)
+  feePerParticipant    Boolean           @default(false)
   lastRegistrationDate DateTime?
   eventDate            DateTime?
   problemSummary       String?           @db.Text
@@ -708,6 +710,39 @@ model OrgQuery {
   updatedAt      DateTime     @updatedAt
 
   @@index([organizationId])
+}
+
+// Site-wide configuration for the entire portal
+model SiteSettings {
+  id                  String    @id @default("global")
+  siteName            String    @default("Festoryx")
+  eventTitle          String    @default("Festoryx Events")
+  tagline             String?
+  aboutContent        String?   @db.Text
+  contactEmail        String?
+  contactPhone        String?
+  contactAddress      String?
+  footerText          String?
+  logoUrl             String?
+  headerLogoUrl       String?
+  footerLogoUrl       String?
+  faviconUrl          String?
+  instagramUrl        String?
+  githubUrl           String?
+  twitterUrl          String?
+  linkedinUrl         String?
+  youtubeUrl          String?
+  countdownDate       DateTime?
+  updatedAt           DateTime  @updatedAt
+}
+
+// Temporary OTP storage for security actions (e.g. org deletion)
+model OtpVerification {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 

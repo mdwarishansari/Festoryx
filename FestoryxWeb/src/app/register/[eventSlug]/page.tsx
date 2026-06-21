@@ -178,6 +178,7 @@ export default async function RegisterPage({ params }: PageProps) {
                   minTeamSize: event.minTeamSize,
                   maxTeamSize: event.maxTeamSize,
                   registrationFee: event.registrationFee,
+                  feePerParticipant: event.feePerParticipant,
                 }}
                 settings={settings}
                 formFields={formFields}

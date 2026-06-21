@@ -6,8 +6,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { settingsSchema, type SettingsFormData } from "@/schemas/settings.schema";
 import { updateSettings, resetCountdownDate } from "@/actions/settings.actions";
+import { requestOrgDeletionOTP, confirmOrgDeletion } from "@/actions/organization.actions";
 import { toast } from "sonner";
-import { Loader2, Save, Info, Image, CreditCard, Mail, Upload, Lock, XCircle } from "lucide-react";
+import { Loader2, Save, Info, Image, CreditCard, Mail, Upload, Lock, XCircle, Trash2, AlertTriangle } from "lucide-react";
 import { cn, formatToISTInputString } from "@/lib/utils";
 
 interface SettingsFormProps {
@@ -21,6 +22,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   const [uploads, setUploads] = useState<Record<string, boolean>>({});
 
   const [isResettingCountdown, startResetCountdownTransition] = useTransition();
+
+  const [deleteOtp, setDeleteOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
 
   const handleResetCountdown = () => {
     startResetCountdownTransition(async () => {
@@ -164,6 +170,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     { id: "branding", label: "Branding", icon: Image },
     { id: "payment", label: "Payment & QR", icon: CreditCard },
     { id: "contact", label: "Contact & Footer", icon: Mail },
+    { id: "danger", label: "Danger Zone", icon: XCircle },
   ];
 
   return (
@@ -188,7 +195,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         ))}
       </div>
 
-      {activeTab !== "security" && (
+      {activeTab !== "danger" && (
         <form onSubmit={handleSubmit(onSubmit, onFormError)} className="space-y-6">
         {/* GENERAL TAB */}
         {activeTab === "general" && (
@@ -596,6 +603,138 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           </button>
         </div>
         </form>
+      )}
+
+      {/* DANGER ZONE TAB */}
+      {activeTab === "danger" && (
+        <div className="rounded-2xl border border-red-500/25 bg-red-950/5 p-6 backdrop-blur-md space-y-6">
+          <div className="flex items-start gap-4">
+            <div className="h-12 w-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 shrink-0">
+              <AlertTriangle className="w-6 h-6 animate-pulse" />
+            </div>
+            <div>
+              <h3 className="font-heading text-lg font-bold text-white">Danger Zone</h3>
+              <p className="text-xs text-red-400 mt-1">
+                Actions performed in this section are highly destructive and cannot be undone. Please proceed with extreme caution.
+              </p>
+            </div>
+          </div>
+
+          <div className="border border-red-500/20 rounded-xl p-4 bg-red-950/10 space-y-4">
+            <h4 className="text-sm font-semibold text-white">Delete Organization</h4>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Deleting your organization will immediately and permanently remove the following records and assets:
+            </p>
+            <ul className="list-disc pl-5 text-xs text-gray-500 space-y-1">
+              <li>The organization's details, settings, and team memberships.</li>
+              <li>All created events, schedules, eligibility requirements, rules, and banners.</li>
+              <li>All participant registrations, team lists, custom forms, and payment details.</li>
+              <li>All uploaded files and payment screenshots from Cloudinary storage.</li>
+              <li>All linked live Quiz Arena sessions, questions, rounds, and participant histories.</li>
+            </ul>
+
+            {!otpSent ? (
+              <button
+                type="button"
+                disabled={isSendingOtp}
+                onClick={async () => {
+                  if (!confirm("Are you absolutely sure you want to request organization deletion? This will email a one-time passcode (OTP) to confirm deletion.")) {
+                    return;
+                  }
+                  setIsSendingOtp(true);
+                  try {
+                    const res = await requestOrgDeletionOTP(settings.id);
+                    if (res.success) {
+                      setOtpSent(true);
+                      toast.success("A verification OTP code has been sent to your email.");
+                    } else {
+                      toast.error("Failed to send OTP.");
+                    }
+                  } catch (err: any) {
+                    toast.error(err.message || "An error occurred.");
+                  } finally {
+                    setIsSendingOtp(false);
+                  }
+                }}
+                className="h-10 px-6 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isSendingOtp ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Sending OTP Code...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Request Deletion OTP</span>
+                  </>
+                )}
+              </button>
+            ) : (
+              <div className="space-y-4 border-t border-red-500/10 pt-4">
+                <div className="max-w-xs">
+                  <label className="block text-[10px] uppercase tracking-wider font-semibold text-red-400 mb-1.5">Enter 6-Digit Deletion OTP *</label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={deleteOtp}
+                    onChange={(e) => setDeleteOtp(e.target.value)}
+                    className="w-full px-3 py-2 bg-black border border-red-500/30 rounded-lg text-xs text-white placeholder-gray-700 font-mono tracking-widest text-center focus:outline-none focus:border-red-500"
+                    placeholder="000000"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    disabled={isConfirmingDelete || deleteOtp.length !== 6}
+                    onClick={async () => {
+                      if (!confirm("FINAL WARNING: Deletion is completely permanent. Click OK to destroy all data and delete this organization.")) {
+                        return;
+                      }
+                      setIsConfirmingDelete(true);
+                      try {
+                        const res = await confirmOrgDeletion(settings.id, deleteOtp);
+                        if (res.success) {
+                          toast.success("Organization successfully deleted.");
+                          window.location.href = "/";
+                        }
+                      } catch (err: any) {
+                        toast.error(err.message || "Invalid or expired OTP.");
+                      } finally {
+                        setIsConfirmingDelete(false);
+                      }
+                    }}
+                    className="h-10 px-6 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isConfirmingDelete ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Deleting Permanently...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Confirm & Permanently Delete</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setDeleteOtp("");
+                    }}
+                    className="h-10 px-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-xs font-semibold text-white transition-all"
+                  >
+                    Cancel Deletion
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

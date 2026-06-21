@@ -1,9 +1,9 @@
-import { getSettings } from "@/actions/settings.actions";
+import { getSiteSettings } from "@/actions/settings.actions";
 import { SettingsForm } from "./settings-form";
 import { Settings as SettingsIcon } from "lucide-react";
 
 export default async function AdminSettingsPage() {
-  const settings = await getSettings();
+  const settings = await getSiteSettings();
 
   return (
     <div className="space-y-8">

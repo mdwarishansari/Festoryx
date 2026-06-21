@@ -16,7 +16,6 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState("/Logo.gif");
-  const [headerLogoUrl, setHeaderLogoUrl] = useState("/RKDF-LOGO.png");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,7 +42,6 @@ export function Header() {
       try {
         const settings = await getSettings();
         if (settings?.logoUrl) setLogoUrl(settings.logoUrl);
-        if (settings?.headerLogoUrl) setHeaderLogoUrl(settings.headerLogoUrl);
       } catch (err) {
         console.error("Failed to load header branding settings:", err);
       }
@@ -106,7 +104,7 @@ export function Header() {
           {/* Right Section */}
           <div className="flex items-center gap-2 md:gap-4">
             {/* Desktop CTA */}
-            <div className="hidden md:block">
+            <div>
               <Link
                 href="/join"
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:shadow-indigo-500/40 hover:brightness-110"
@@ -115,13 +113,6 @@ export function Header() {
                 Join Lobby
               </Link>
             </div>
-
-            {/* RKDF Logo */}
-            <img
-              src={headerLogoUrl}
-              alt="RKDF Logo"
-              className="hidden md:block h-12 w-auto object-contain opacity-90"
-            />
 
             {/* Mobile Menu Button */}
             <button
@@ -208,18 +199,6 @@ export function Header() {
                 Join Lobby
               </Link>
             </div>
-          </div>
-
-          {/* Sponsored Badge */}
-          <div className="mt-auto pt-6 border-t border-white/10 flex flex-col items-center gap-2">
-            <img
-              src={headerLogoUrl}
-              alt="RKDF Logo"
-              className="h-8 w-auto object-contain opacity-80"
-            />
-            <span className="text-[9px] text-gray-500 uppercase tracking-widest font-semibold">
-              Sponsored By RKDF
-            </span>
           </div>
         </div>
       </div>

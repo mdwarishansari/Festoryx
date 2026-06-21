@@ -52,6 +52,7 @@ export interface RegistrationFilters {
   paymentStatus?: string;
   status?: string;
   search?: string;
+  token?: string;
   page?: number;
   pageSize?: number;
 }

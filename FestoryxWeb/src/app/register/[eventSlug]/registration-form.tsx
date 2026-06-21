@@ -40,6 +40,7 @@ interface RegistrationFormClientProps {
     minTeamSize: number;
     maxTeamSize: number;
     registrationFee: any;
+    feePerParticipant?: boolean;
   };
   settings: {
     paymentQrCodeUrl?: string | null;
@@ -160,6 +161,10 @@ export function RegistrationFormClient({ event, settings, formFields }: Registra
     control,
     name: "teamMembers",
   });
+
+  const members = watch("teamMembers") || [];
+  const teamSize = regType === "TEAM" ? (members.length + 1) : 1;
+  const totalFee = event.feePerParticipant ? fee * teamSize : fee;
 
   // Calculate if Step 2 is active/needed
   const showTeamStep = isTeamRegistrationAllowed && regType === "TEAM";
@@ -677,8 +682,15 @@ export function RegistrationFormClient({ event, settings, formFields }: Registra
                 <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-5">
                   <div className="flex justify-between border-b border-indigo-500/20 pb-3 mb-3">
                     <span className="text-gray-300 text-sm font-semibold">Total Registration Fee</span>
-                    <span className="font-heading text-lg font-bold text-indigo-400">₹{fee}</span>
+                    <span className="font-heading text-lg font-bold text-indigo-400">₹{totalFee}</span>
                   </div>
+
+                  {event.feePerParticipant && (
+                    <div className="flex justify-between text-xs text-indigo-300/80 mb-4 pb-2 border-b border-white/5">
+                      <span>Fee Breakdown</span>
+                      <span>₹{fee} per participant × {teamSize} participant{teamSize > 1 ? 's' : ''} = ₹{totalFee}</span>
+                    </div>
+                  )}
 
                   {settings?.paymentInstructions && (
                     <div className="text-xs text-gray-400 whitespace-pre-line leading-relaxed mb-4">

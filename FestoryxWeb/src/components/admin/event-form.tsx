@@ -105,6 +105,7 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
       ? {
           ...initialData,
           registrationFee: initialData.registrationFee ? Number(initialData.registrationFee) : 0,
+          feePerParticipant: initialData.feePerParticipant ?? false,
           eventDate: formatDateInput(initialData.eventDate),
           lastRegistrationDate: formatDateTimeInput(initialData.lastRegistrationDate),
           problemReleaseTime: formatDateTimeInput(initialData.problemReleaseTime),
@@ -129,6 +130,7 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
           schedule: "",
           bannerUrl: "",
           registrationFee: 0,
+          feePerParticipant: false,
           lastRegistrationDate: "",
           eventDate: "",
           problemSummary: "",
@@ -234,7 +236,7 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
     } else if (step === 3) {
       fieldsToValidate = ["modules"];
     } else if (step === 4) {
-      fieldsToValidate = ["participationType", "minTeamSize", "maxTeamSize", "registrationFee", "sortOrder"];
+      fieldsToValidate = ["participationType", "minTeamSize", "maxTeamSize", "registrationFee", "feePerParticipant", "sortOrder"];
     } else if (step === 5) {
       fieldsToValidate = ["formFields"];
     }
@@ -792,6 +794,24 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
                   />
                 </div>
               </div>
+
+              {watch("registrationFee") > 0 && (
+                <div className="pt-2">
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      {...register("feePerParticipant")}
+                      className="mt-1 h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <div>
+                      <span className="block text-sm font-medium text-white">Charge fee per participant</span>
+                      <span className="text-xs text-gray-500">
+                        If enabled, the registration fee multiplies by the number of team members (e.g. fee is ₹100, team of 3 will pay ₹300).
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              )}
             </div>
           </div>
         )}

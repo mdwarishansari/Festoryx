@@ -130,38 +130,38 @@ graph TD
 
 ```text
 Festoryx (Repository Root)
-├── Festoryx Web/               # Main SaaS Platform (Next.js 16, Port 3000)
+├── FestoryxWeb/                # Main SaaS Platform (Next.js 16, Port 3000)
 │   ├── prisma/                 # Database Schema and Seeds
 │   ├── src/                    # App Router pages, Server Actions, Dynamic Form layouts
 │   └── README.md               # Main SaaS Setup & Route Guide
 │
-├── Festoryx Quiz/              # Real-Time Quiz Suite (Next.js 16, Port 3002)
+├── FestoryxQuiz/               # Real-Time Quiz Suite (Next.js 16, Port 3002)
 │   ├── src/                    # Lobbies, admin control panel, projector screens
 │   ├── socket-server/          # Real-time WebSocket relay server (Port 3001)
 │   │   ├── Dockerfile          # Production Docker configuration
 │   │   └── index.ts            # Socket connection handlers and live room state
 │   └── README.md               # Quiz Arena & Socket Server Setup Guide
 │
-├── DEPLOYMENT_GUIDE.md         # [Untracked] Comprehensive Deployment Guide (Vercel & Render)
+├── DEPLOYMENT_GUIDE.md         # Comprehensive Deployment Guide (Vercel & Render)
 └── README.md                   # This Monorepo Overview
 ```
 
 ---
 
-## 🛠️ Comprehensive Tech Stack
+## 🛠️ Comprehensive Tech Stack & Integrations
 
 | Component | Technology | Description |
 |---|---|---|
-| **Frontend Framework** | Next.js 16 (App Router) | Server-side rendering, Client pages, and static generation |
+| **Frontend Framework** | Next.js 16 (App Router) | Server-side rendering, Client pages, and server actions |
 | **Language** | TypeScript | Strong typing across all client and server endpoints |
 | **Database** | PostgreSQL (Supabase) | Scalable relational storage with connection pooling |
 | **Database ORM** | Prisma 7 | Type-safe queries, migration control, and schema seeding |
 | **Real-time Server** | Node.js + Socket.IO | High-throughput WebSocket server handling game states |
 | **Authentication** | Clerk Auth | Multi-tenant user auth, custom onboarding workflows |
 | **Asset Storage** | Cloudinary SDK | Cloud media hosting with API-driven deletion cycles |
-| **Email Delivery** | Nodemailer (SMTP) | Dynamic transaction and notification email engine |
+| **Email Delivery** | Nodemailer (SMTP) | Dynamic transaction, OTP verification, and notification emails |
 | **Styling** | Tailwind CSS v4 | Rapid UI development with custom theme variables |
-| **Animations** | Framer Motion | Fluid micro-interactions and transition effects |
+| **Animations** | Framer Motion | Fluid micro-interactions, transitions, and tab effects |
 
 ---
 
@@ -170,20 +170,37 @@ Festoryx (Repository Root)
 For a quick-start run:
 
 ### 1. Setup Environment Configurations
-Create `.env` files in both [Festoryx Web](file:///home/md-warish-ansari/Projects/Festoryx/Festoryx%20Web) and [Festoryx Quiz](file:///home/md-warish-ansari/Projects/Festoryx/Festoryx%20Quiz) using their respective `.env.example` templates.
+Create `.env` files in both [FestoryxWeb](file:///home/md-warish-ansari/Projects/Festoryx/FestoryxWeb) and [FestoryxQuiz](file:///home/md-warish-ansari/Projects/Festoryx/FestoryxQuiz) using their respective `.env.example` templates.
+
+#### Key Environment Variables Checklist
+* **FestoryxWeb**:
+  - `DATABASE_URL`: PostgreSQL connection URL (pooled).
+  - `DIRECT_URL`: PostgreSQL direct connection URL (for migrations).
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` & `CLERK_SECRET_KEY`: Clerk Auth credentials.
+  - `SMTP_HOST`, `SMTP_PORT`, `SMTP_EMAIL`, `SMTP_PASSWORD`: Mail server authentication.
+  - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: Cloudinary API keys.
+  - `NEXT_PUBLIC_SOCKET_URL`: URL of the socket server (usually `http://localhost:3001`).
+  - `NEXT_PUBLIC_QUIZ_ARENA_URL`: URL of the Quiz Arena app (usually `http://localhost:3002`).
+  - `SUPER_ADMIN_EMAIL`: Privileged email to register as Super Admin.
+* **FestoryxQuiz**:
+  - `DATABASE_URL`: PostgreSQL connection URL.
+  - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` & `CLERK_SECRET_KEY`: Clerk Auth credentials.
+  - `NEXT_PUBLIC_SOCKET_URL`: URL of the socket server.
+  - `NEXT_PUBLIC_Festoryx_URL`: URL of the main web app (usually `http://localhost:3000`).
 
 ### 2. Database Migrations & Seeds
-Run the following inside [Festoryx Web](file:///home/md-warish-ansari/Projects/Festoryx/Festoryx%20Web):
+Run the following inside [FestoryxWeb](file:///home/md-warish-ansari/Projects/Festoryx/FestoryxWeb):
 ```bash
 npm install
+npx prisma generate
 npx prisma migrate dev
 npm run seed
 ```
 
-Run migrations inside [Festoryx Quiz](file:///home/md-warish-ansari/Projects/Festoryx/Festoryx%20Quiz):
+Run migrations inside [FestoryxQuiz](file:///home/md-warish-ansari/Projects/Festoryx/FestoryxQuiz):
 ```bash
 npm install
-npx prisma migrate dev
+npx prisma generate
 ```
 
 ### 3. Launch Services
@@ -191,18 +208,18 @@ Run the following command lists in separate terminals:
 
 * **SaaS Web (Port 3000)**:
   ```bash
-  cd "Festoryx Web"
+  cd FestoryxWeb
   npm run dev
   ```
 * **Socket Relay Server (Port 3001)**:
   ```bash
-  cd "Festoryx Quiz/socket-server"
+  cd "FestoryxQuiz/socket-server"
   npm install
   npm run dev
   ```
 * **Quiz Arena Frontend (Port 3002)**:
   ```bash
-  cd "Festoryx Quiz"
+  cd FestoryxQuiz
   npm run dev
   ```
 
@@ -210,9 +227,9 @@ Run the following command lists in separate terminals:
 
 ## 🔒 Security & Performance Policies
 
-* **Server Action Role Checks**: Every modifying database transaction checks the Clerk user ID against organization member lists to prevent ID spoofing.
-* **CORS Policies**: The Socket.IO server rejects connections originating outside the defined canonical Web and Quiz domains.
-* **Super Admin Guardrails**: System settings and log purgers are protected by dual layers: middleware route restrictions and environment-based email validations.
+* **Clerk Auth Roles & SSO Redirects**: Access to dashboard/admin routes is guarded by session role validation. SSO redirects use dynamic environment variables instead of hardcoded hostnames.
+* **SMTP OTP-Protected Deletion**: Safe, OTP-authenticated deletion is required to purge an organization. Deleting an organization recursively cleans up all nested database records and automatically triggers Cloudinary API calls to garbage-collect remote banner and logo media files.
+* **Strict Data Separation**: SiteSettings (global, managed by Super Admin) are strictly separated from OrgSettings (tenant-specific, managed by Org Admins). Social links, inbox queries, events, and about sections are completely isolated per organization.
 
 ---
 

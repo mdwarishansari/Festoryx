@@ -16,6 +16,7 @@ export const eventSchema = z.object({
   schedule: z.string().optional().nullable(),
   bannerUrl: z.string().optional().nullable(),
   registrationFee: z.coerce.number().min(0).optional().nullable(),
+  feePerParticipant: z.boolean().default(false),
   lastRegistrationDate: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
     if (!val) return undefined;
     if (typeof val === "string" && val.trim() === "") return undefined;

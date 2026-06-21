@@ -1,16 +1,14 @@
 import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 
-// ─── Transporter (reused across calls) ───────────────────────────────────────
-let _transporter: nodemailer.Transporter | null = null;
-
 function getTransporter(): nodemailer.Transporter {
-  if (_transporter) return _transporter;
+  const port = Number(process.env.SMTP_PORT) || 587;
+  const secure = port === 465;
 
-  _transporter = nodemailer.createTransport({
+  return nodemailer.createTransport({
     host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: false, // TLS via STARTTLS
+    port,
+    secure,
     auth: {
       user: process.env.SMTP_EMAIL,
       pass: process.env.SMTP_PASSWORD,
@@ -19,8 +17,6 @@ function getTransporter(): nodemailer.Transporter {
       rejectUnauthorized: false,
     },
   });
-
-  return _transporter;
 }
 
 // ─── Branding Config ──────────────────────────────────────────────────────────
@@ -185,17 +181,21 @@ export async function sendEmail({ to, subject, html }: SendEmailParams): Promise
     return;
   }
 
-  const transporter = getTransporter();
   const recipients = Array.isArray(to) ? to.join(", ") : to;
 
-  await transporter.sendMail({
-    from: `"${fromName}" <${fromEmail}>`,
-    to: recipients,
-    subject,
-    html,
-  });
-
-  console.log(`[Email] ✅ Sent "${subject}" → ${recipients}`);
+  try {
+    const transporter = getTransporter();
+    await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to: recipients,
+      subject,
+      html,
+    });
+    console.log(`[Email] ✅ Sent "${subject}" → ${recipients}`);
+  } catch (error) {
+    console.error(`[Email] ❌ Failed to send "${subject}" to ${recipients}:`, error);
+    throw error;
+  }
 }
 
 // ─── Live Quiz Session Start Email ──────────────────────────────────────────

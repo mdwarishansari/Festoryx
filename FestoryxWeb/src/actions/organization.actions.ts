@@ -5,6 +5,18 @@ import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { Organization } from "@prisma/client";
 import { sendEmail, getOrganizationApprovedEmail, getOrganizationRejectedEmail } from "@/lib/email";
+import { deleteFromCloudinary } from "@/lib/cloudinary";
+import { getPublicIdFromUrl } from "@/lib/utils";
+
+function normalizeUrl(url?: string): string | undefined {
+  if (!url) return undefined;
+  const trimmed = url.trim();
+  if (trimmed === "") return "";
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+}
 
 export async function createOrganization(data: {
   name: string;
@@ -56,7 +68,7 @@ export async function createOrganization(data: {
         description: data.description,
         logoUrl: data.logoUrl,
         logoPublicId: data.logoPublicId,
-        websiteUrl: data.websiteUrl,
+        websiteUrl: normalizeUrl(data.websiteUrl),
         socialLinks: data.socialLinks || {},
         status: "PENDING_VERIFICATION",
       },
@@ -144,7 +156,7 @@ export async function updateOrganization(
         description: data.description,
         logoUrl: data.logoUrl,
         logoPublicId: data.logoPublicId,
-        websiteUrl: data.websiteUrl,
+        websiteUrl: data.websiteUrl !== undefined ? normalizeUrl(data.websiteUrl) : undefined,
         socialLinks: data.socialLinks,
       },
     });
@@ -358,6 +370,9 @@ export async function deleteOrganization(orgId: string): Promise<void> {
 
   if (!org) throw new Error("Organization not found");
 
+  // Cleanup Cloudinary uploads first
+  await cleanupCloudinaryAssets(orgId);
+
   await prisma.organization.delete({
     where: { id: orgId },
   });
@@ -373,4 +388,155 @@ export async function deleteOrganization(orgId: string): Promise<void> {
   revalidatePath("/superadmin/organizations");
   revalidatePath("/superadmin");
   revalidatePath("/admin/organizations");
+}
+
+async function cleanupCloudinaryAssets(orgId: string) {
+  try {
+    // 1. Get org logo
+    const org = await prisma.organization.findUnique({
+      where: { id: orgId },
+      include: { settings: true },
+    });
+    if (org?.logoPublicId) {
+      await deleteFromCloudinary(org.logoPublicId);
+    } else if (org?.logoUrl) {
+      const publicId = getPublicIdFromUrl(org.logoUrl);
+      if (publicId) await deleteFromCloudinary(publicId);
+    }
+
+    // 2. Get org settings QR code
+    if (org?.settings?.paymentQrCodeUrl) {
+      const publicId = getPublicIdFromUrl(org.settings.paymentQrCodeUrl);
+      if (publicId) await deleteFromCloudinary(publicId);
+    }
+
+    // 3. Get all events banners
+    const events = await prisma.event.findMany({
+      where: { organizationId: orgId },
+      select: { bannerUrl: true },
+    });
+    for (const event of events) {
+      if (event.bannerUrl) {
+        const publicId = getPublicIdFromUrl(event.bannerUrl);
+        if (publicId) await deleteFromCloudinary(publicId);
+      }
+    }
+
+    // 4. Get all registration payment screenshots
+    const registrations = await prisma.registration.findMany({
+      where: { organizationId: orgId },
+      select: { paymentScreenshot: true },
+    });
+    for (const reg of registrations) {
+      if (reg.paymentScreenshot) {
+        const publicId = getPublicIdFromUrl(reg.paymentScreenshot);
+        if (publicId) await deleteFromCloudinary(publicId);
+      }
+    }
+  } catch (error) {
+    console.error("Error during Cloudinary assets cleanup for organization deletion:", error);
+  }
+}
+
+export async function requestOrgDeletionOTP(orgId: string) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+
+  // Verify ownership
+  const member = await prisma.organizationMember.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId: orgId,
+        userId: user.id,
+      },
+    },
+  });
+  if (!member || member.role !== "OWNER") {
+    throw new Error("Only the organization owner can request deletion.");
+  }
+
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+  // Store OTP
+  await prisma.otpVerification.upsert({
+    where: { email: user.email },
+    update: {
+      code: otp,
+      expiresAt,
+    },
+    create: {
+      email: user.email,
+      code: otp,
+      expiresAt,
+    },
+  });
+
+  // Send email
+  await sendEmail({
+    to: user.email,
+    subject: "Festoryx - Confirm Organization Deletion",
+    html: `
+      <div style="font-family: sans-serif; padding: 24px; max-width: 600px; margin: 0 auto; background-color: #0c081e; color: #f4f0ff; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+        <h2 style="color: #ffffff; font-size: 20px; font-weight: bold; margin-bottom: 16px;">Confirm Deletion Request</h2>
+        <p style="font-size: 14px; line-height: 1.6; color: #94a3b8;">
+          You have requested to delete your organization. This action is **permanent** and **irreversible**. All your events, registrations, settings, and linked files will be destroyed.
+        </p>
+        <div style="margin: 24px 0; padding: 16px; background-color: rgba(255,255,255,0.05); border-radius: 8px; text-align: center;">
+          <span style="font-size: 24px; font-weight: bold; letter-spacing: 2px; color: #9382ff;">${otp}</span>
+        </div>
+        <p style="font-size: 12px; color: #64748b;">
+          This OTP code is valid for 10 minutes. If you did not request this, please ignore this email.
+        </p>
+      </div>
+    `,
+  });
+
+  return { success: true };
+}
+
+export async function confirmOrgDeletion(orgId: string, code: string) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+
+  // Verify ownership
+  const member = await prisma.organizationMember.findUnique({
+    where: {
+      organizationId_userId: {
+        organizationId: orgId,
+        userId: user.id,
+      },
+    },
+  });
+  if (!member || member.role !== "OWNER") {
+    throw new Error("Only the organization owner can delete the organization.");
+  }
+
+  const otp = await prisma.otpVerification.findUnique({
+    where: { email: user.email },
+  });
+
+  if (!otp || otp.code !== code || otp.expiresAt < new Date()) {
+    throw new Error("Invalid or expired OTP.");
+  }
+
+  // Delete OTP verification record
+  await prisma.otpVerification.delete({
+    where: { email: user.email },
+  });
+
+  // Cleanup Cloudinary uploads first
+  await cleanupCloudinaryAssets(orgId);
+
+  // Delete organization (which cascades everything else in database)
+  await prisma.organization.delete({
+    where: { id: orgId },
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/superadmin");
+  revalidatePath("/admin/organizations");
+
+  return { success: true };
 }

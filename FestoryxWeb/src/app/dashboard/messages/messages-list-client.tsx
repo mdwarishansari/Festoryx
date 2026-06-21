@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { markContactMessageRead, deleteContactMessage, toggleContactMessageRead } from "@/actions/contact.actions";
+import { updateOrgQueryStatus, deleteOrgQuery } from "@/actions/org-query.actions";
+
+const markContactMessageRead = (id: string) => updateOrgQueryStatus(id, "RESPONDED");
+const toggleContactMessageRead = (id: string, isRead: boolean) => updateOrgQueryStatus(id, isRead ? "RESPONDED" : "PENDING");
+const deleteContactMessage = (id: string) => deleteOrgQuery(id);
+
 import { toast } from "sonner";
 import { Mail, MailOpen, Trash2, Calendar, User } from "lucide-react";
 import { formatDateTimeIST } from "@/lib/utils";

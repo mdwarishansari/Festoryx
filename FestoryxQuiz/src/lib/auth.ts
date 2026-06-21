@@ -14,22 +14,38 @@ export async function getOrCreateDbUser(): Promise<User | null> {
   const avatarUrl = clerkUser.imageUrl;
   const isSuperAdminEmail = email === process.env.SUPER_ADMIN_EMAIL || email === process.env.ADMIN_EMAIL || email === "warishprojects@gmail.com";
 
-  const dbUser = await prisma.user.upsert({
-    where: { clerkId: clerkUser.id },
-    update: {
-      email,
-      name,
-      avatarUrl,
-      role: isSuperAdminEmail ? "SUPER_ADMIN" : undefined,
-    },
-    create: {
-      clerkId: clerkUser.id,
-      email,
-      name,
-      avatarUrl,
-      role: isSuperAdminEmail ? "SUPER_ADMIN" : "ORG_ADMIN",
-    },
+  // Check if a user with same clerkId or email exists to handle seeded placeholder clerkId
+  let dbUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { clerkId: clerkUser.id },
+        { email }
+      ]
+    }
   });
+
+  if (dbUser) {
+    dbUser = await prisma.user.update({
+      where: { id: dbUser.id },
+      data: {
+        clerkId: clerkUser.id,
+        email,
+        name,
+        avatarUrl,
+        role: isSuperAdminEmail ? "SUPER_ADMIN" : dbUser.role,
+      }
+    });
+  } else {
+    dbUser = await prisma.user.create({
+      data: {
+        clerkId: clerkUser.id,
+        email,
+        name,
+        avatarUrl,
+        role: isSuperAdminEmail ? "SUPER_ADMIN" : "ORG_ADMIN",
+      }
+    });
+  }
 
   return dbUser;
 }
