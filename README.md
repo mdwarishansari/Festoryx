@@ -1,28 +1,26 @@
 
-<div style="background-color:#000;">
-  <div align="center">
-    <img src="FestoryxWeb/public/Logo.gif" alt="Festoryx Logo" width="200" />
-    <h1>Festoryx</h1>
-    <p><strong>The Production-Minded Event Operating System & Real-Time Competition SaaS</strong></p>
+<div align="center">
+  <img src="FestoryxWeb/public/Logo.gif" alt="Festoryx Logo" width="200" />
+  <h1>Festoryx</h1>
+  <p><strong>The Production-Minded Event Operating System & Real-Time Competition SaaS</strong></p>
 
-    <p>
-      <a href="https://festoryx.vercel.app" target="_blank">
-        <img src="https://img.shields.io/badge/Main%20SaaS-festoryx.vercel.app-blueviolet?style=for-the-badge&logo=vercel" alt="Main SaaS" />
-      </a>
-      <a href="https://festoryx-quiz.vercel.app" target="_blank">
-        <img src="https://img.shields.io/badge/Quiz%20Arena-festoryx--quiz.vercel.app-indigo?style=for-the-badge&logo=vercel" alt="Quiz Arena" />
-      </a>
-    </p>
+  <p>
+    <a href="https://festoryx.vercel.app" target="_blank">
+      <img src="https://img.shields.io/badge/Main%20SaaS-festoryx.vercel.app-blueviolet?style=for-the-badge&logo=vercel" alt="Main SaaS" />
+    </a>
+    <a href="https://festoryx-quiz.vercel.app" target="_blank">
+      <img src="https://img.shields.io/badge/Quiz%20Arena-festoryx--quiz.vercel.app-indigo?style=for-the-badge&logo=vercel" alt="Quiz Arena" />
+    </a>
+  </p>
 
-    <p>
-      <img src="https://img.shields.io/badge/Framework-Next.js%2016-black?style=flat-square&logo=nextdotjs" />
-      <img src="https://img.shields.io/badge/Language-TypeScript-blue?style=flat-square&logo=typescript" />
-      <img src="https://img.shields.io/badge/Database-PostgreSQL%20(Supabase)-blue?style=flat-square&logo=postgresql" />
-      <img src="https://img.shields.io/badge/ORM-Prisma%207-green?style=flat-square&logo=prisma" />
-      <img src="https://img.shields.io/badge/Real--Time-Socket.io-lightgrey?style=flat-square&logo=socketdotio" />
-      <img src="https://img.shields.io/badge/Auth-Clerk-purple?style=flat-square&logo=clerk" />
-    </p>
-  </div>
+  <p>
+    <img src="https://img.shields.io/badge/Framework-Next.js%2016-black?style=flat-square&logo=nextdotjs" />
+    <img src="https://img.shields.io/badge/Language-TypeScript-blue?style=flat-square&logo=typescript" />
+    <img src="https://img.shields.io/badge/Database-PostgreSQL%20(Supabase)-blue?style=flat-square&logo=postgresql" />
+    <img src="https://img.shields.io/badge/ORM-Prisma%207-green?style=flat-square&logo=prisma" />
+    <img src="https://img.shields.io/badge/Real--Time-Socket.io-lightgrey?style=flat-square&logo=socketdotio" />
+    <img src="https://img.shields.io/badge/Auth-Clerk-purple?style=flat-square&logo=clerk" />
+  </p>
 </div>
 
 ---
