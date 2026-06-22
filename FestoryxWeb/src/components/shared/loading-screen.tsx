@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 export function LoadingScreen() {
   const [show, setShow] = useState(true);
@@ -41,30 +42,46 @@ export function LoadingScreen() {
   if (!show) return null;
 
   return (
-    <div
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#070b19] transition-all duration-500 ease-in-out ${
-        fadeOut ? "opacity-0 pointer-events-none backdrop-blur-none" : "opacity-100"
-      }`}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={fadeOut ? { opacity: 0 } : { opacity: 1 }}
+      transition={{
+        duration: fadeOut ? 0.5 : 0.8,
+        ease: "easeOut",
+      }}
+      className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-gradient-to-b from-[#040816] via-[#070b19] to-[#02040d]"
+      style={{
+        backgroundImage: `radial-gradient(circle at center, rgba(124, 58, 237, 0.15), transparent 70%), linear-gradient(to bottom, #040816, #070b19, #02040d)`,
+      }}
     >
-      <div className="relative flex flex-col items-center">
-        {/* Glow effect background */}
-        <div className="absolute -inset-4 rounded-full bg-indigo-500/20 blur-xl animate-pulse" />
-        
-        {/* Clickable Rounded Logo Container */}
-        <Link
-          href="/"
-          className="relative block h-60 w-60 overflow-hidden rounded-full border border-white/15 bg-black/40 p-1 shadow-2xl shadow-indigo-500/10 transition-transform hover:scale-105"
+      <div className="relative flex flex-col items-center justify-center">
+        {/* Glow layers centered exactly at logo center */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-violet-500/15 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/10 blur-[180px] rounded-full pointer-events-none" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-500/10 blur-[220px] rounded-full pointer-events-none" />
+
+        {/* Animated Logo Container with entrance and exit scale animations */}
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={fadeOut ? { scale: 1.05, opacity: 0 } : { scale: 1, opacity: 1 }}
+          transition={{
+            duration: fadeOut ? 0.5 : 0.8,
+            ease: "easeOut",
+          }}
+          className="relative w-[160px] h-[160px] md:w-[200px] md:h-[200px] lg:w-[260px] lg:h-[260px]"
         >
-          <Image
-            src="/Logo.gif"
-            alt="Festoryx Logo"
-            fill
-            priority
-            unoptimized
-            className="rounded-full object-cover animate-pulse"
-          />
-        </Link>
+          <Link href="/" className="relative block w-full h-full">
+            <Image
+              src="/Logo.gif"
+              alt="Festoryx Logo"
+              fill
+              priority
+              unoptimized
+              className="object-contain"
+            />
+          </Link>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }
