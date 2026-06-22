@@ -100,6 +100,7 @@ export function HomeHero({ countdownDate }: HomeHeroProps) {
             height: 800px;
             perspective: 1000px;
             z-index: 1;
+            pointer-events: none;
         }
         .accretion-ring {
             position: absolute;
@@ -178,7 +179,7 @@ export function HomeHero({ countdownDate }: HomeHeroProps) {
       <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#05020a] to-transparent z-1" />
       
       {/* ─── HERO CONTENT ─── */}
-      <div className="relative z-10 mx-auto max-w-5xl px-4 w-full text-center lg:text-left mt-6">
+      <div className="relative z-10 mx-auto lg:mx-0 max-w-5xl px-4 w-full text-center lg:text-left mt-6">
         {/* Sparkle Badge */}
         <motion.div 
           className="mb-6 inline-block"
