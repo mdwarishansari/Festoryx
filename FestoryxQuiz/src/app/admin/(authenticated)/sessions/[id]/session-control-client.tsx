@@ -48,6 +48,34 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
   const [quizState, setQuizState] = useState<RealtimeQuizState | null>(null);
   const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
 
+  // Dynamic countdown timer for regular question rounds
+  const [timeRemaining, setTimeRemaining] = useState(0);
+
+  useEffect(() => {
+    if (!quizState?.questionEndsAt) {
+      setTimeRemaining(0);
+      return;
+    }
+
+    const calculateTime = () => {
+      const ends = new Date(quizState.questionEndsAt!).getTime();
+      const now = new Date().getTime();
+      const diff = Math.max(0, Math.ceil((ends - now) / 1000));
+      setTimeRemaining(diff);
+      return diff;
+    };
+
+    calculateTime();
+    const timer = setInterval(() => {
+      const remaining = calculateTime();
+      if (remaining <= 0) {
+        clearInterval(timer);
+      }
+    }, 500);
+
+    return () => clearInterval(timer);
+  }, [quizState?.questionEndsAt]);
+
   // Manual score correction modal states
   const [selectedParticipant, setSelectedParticipant] = useState<any | null>(null);
   const [scoreDelta, setScoreDelta] = useState(10);
@@ -335,7 +363,9 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
   };
 
   // State mapping helper
-  const activeRound = session.rounds.find((r: any) => r.id === quizState?.currentRoundId) || session.rounds[0];
+  const currentStatus = quizState?.status || session.status;
+  const currentRoundId = quizState?.currentRoundId || session.currentRoundId;
+  const activeRound = session.rounds.find((r: any) => r.id === currentRoundId) || session.rounds[0];
   const templateRoundId = activeRound?.settings?.templateRoundId;
 
   // Load round settings into config state when round changes
@@ -449,7 +479,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
 
         {/* Session Status Actions */}
         <div className="flex items-center gap-3">
-          {quizState?.status === "WAITING" && (
+          {currentStatus === "WAITING" && (
             <button
               onClick={handleStartSession}
               disabled={isPending}
@@ -460,7 +490,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
             </button>
           )}
 
-          {quizState?.status === "ACTIVE" && (
+          {currentStatus === "ACTIVE" && (
             <button
               onClick={handlePauseSession}
               disabled={isPending}
@@ -471,7 +501,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
             </button>
           )}
 
-          {quizState?.status === "PAUSED" && (
+          {currentStatus === "PAUSED" && (
             <button
               onClick={handleResumeSession}
               disabled={isPending}
@@ -482,7 +512,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
             </button>
           )}
 
-          {quizState?.status !== "COMPLETED" && quizState?.status !== "WAITING" && (
+          {currentStatus !== "COMPLETED" && currentStatus !== "WAITING" && (
             <button
               onClick={handleEndSession}
               disabled={isPending}
@@ -492,7 +522,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
             </button>
           )}
 
-          {quizState?.status === "COMPLETED" && (
+          {currentStatus === "COMPLETED" && (
             <span className="text-sm font-bold text-gray-500 uppercase tracking-widest px-4 py-2 border border-white/5 rounded-xl bg-black/20">
               Quiz Completed
             </span>
@@ -511,7 +541,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
           </h2>
           <div className="space-y-2">
             {session.rounds.map((r: any) => {
-              const isActive = quizState?.currentRoundId === r.id;
+              const isActive = currentRoundId === r.id;
               const isCompleted = r.status === "COMPLETED";
 
               return (
@@ -535,7 +565,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
                     Mode: {r.type === "MCQ" ? "Simultaneous" : r.type}
                   </p>
 
-                  {quizState?.status === "ACTIVE" && !isActive && (
+                  {currentStatus === "ACTIVE" && !isActive && (
                     <button
                       onClick={() => handleStartRound(r.id)}
                       className="mt-2 w-full text-center font-bold bg-indigo-600/10 hover:bg-indigo-600 text-indigo-300 hover:text-white py-1 rounded border border-indigo-500/20 transition-all text-[10px] flex items-center justify-center gap-1"
@@ -561,7 +591,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
 
         {/* Mid: Active Round Controller */}
         <div className="lg:col-span-2 space-y-6">
-          {(quizState?.status === "COMPLETED" || session.status === "COMPLETED") ? (
+          {(currentStatus === "COMPLETED") ? (
             <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl space-y-6 animate-fade-in">
               <div className="border-b border-white/10 pb-4">
                 <h2 className="text-xl font-bold text-white font-heading flex items-center gap-2">
@@ -668,7 +698,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
                       Points: {quizState.activeQuestion.points}
                     </span>
                     <span className="bg-white/5 px-2 py-0.5 rounded text-xs text-gray-400">
-                      Timer: {quizState.activeQuestion.timeLimit}s
+                      Timer: {timeRemaining}s
                     </span>
                   </div>
                 </div>
@@ -1097,7 +1127,7 @@ export function SessionControlClient({ session }: SessionControlClientProps) {
                         {!isRapidFirePlaying ? (
                           <button
                             onClick={() => handlePushQuestion(q.id)}
-                            disabled={isCurrent || quizState?.status !== "ACTIVE"}
+                            disabled={isCurrent || currentStatus !== "ACTIVE"}
                             className="inline-flex items-center gap-1 rounded bg-indigo-600/15 border border-indigo-500/30 px-2.5 py-1 text-[11px] text-indigo-400 hover:bg-indigo-600 hover:text-white disabled:opacity-30 disabled:hover:bg-indigo-600/15 disabled:hover:text-indigo-400"
                           >
                             Push Screen

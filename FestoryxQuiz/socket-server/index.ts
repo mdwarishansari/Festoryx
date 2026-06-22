@@ -55,6 +55,8 @@ const io = new Server(httpServer, {
     origin: "*", // Allow all origins for dev simplicity
     methods: ["GET", "POST"],
   },
+  pingTimeout: 180000,
+  pingInterval: 25000,
 });
 
 const PORT = process.env.PORT || 3001;
@@ -110,6 +112,53 @@ interface RealtimeQuizStateCache {
 }
 
 const activeSessions = new Map<string, RealtimeQuizStateCache>();
+
+async function getOrCreateSessionCache(sessionId: string): Promise<RealtimeQuizStateCache | null> {
+  let cache = activeSessions.get(sessionId);
+  if (!cache) {
+    const session = await prisma.quizSession.findUnique({
+      where: { id: sessionId },
+    });
+    if (session) {
+      cache = {
+        sessionId,
+        status: session.status,
+        currentRoundId: session.currentRoundId,
+        activeQuestionId: session.activeQuestionId,
+        questionStartedAt: session.questionStartedAt,
+        questionEndsAt: session.questionEndsAt,
+        timerInterval: null,
+        buzzerOpen: session.buzzerOpen,
+        questionCompleted: session.questionCompleted,
+        rapidFireState: session.rapidFireState ? (session.rapidFireState as any) : undefined,
+      };
+      activeSessions.set(sessionId, cache);
+    }
+  }
+  return cache || null;
+}
+
+async function persistSessionState(sessionId: string) {
+  const cache = activeSessions.get(sessionId);
+  if (!cache) return;
+  try {
+    await prisma.quizSession.update({
+      where: { id: sessionId },
+      data: {
+        status: cache.status,
+        currentRoundId: cache.currentRoundId,
+        activeQuestionId: cache.activeQuestionId,
+        questionStartedAt: cache.questionStartedAt,
+        questionEndsAt: cache.questionEndsAt,
+        buzzerOpen: cache.buzzerOpen || false,
+        questionCompleted: cache.questionCompleted || false,
+        rapidFireState: cache.rapidFireState ? (cache.rapidFireState as any) : null,
+      },
+    });
+  } catch (err) {
+    console.error(`Error persisting session state for ${sessionId}:`, err);
+  }
+}
 
 // Helper to compile and broadcast state to all participants in a room
 async function broadcastState(sessionId: string) {
@@ -245,6 +294,7 @@ async function broadcastState(sessionId: string) {
     };
 
     io.to(`session:${sessionId}`).emit("state-sync", compiledState);
+    persistSessionState(sessionId);
   } catch (error) {
     console.error(`Error broadcasting state for session ${sessionId}:`, error);
   }
@@ -267,23 +317,7 @@ io.on("connection", (socket) => {
         });
       }
 
-      if (!activeSessions.has(sessionId)) {
-        const session = await prisma.quizSession.findUnique({ where: { id: sessionId } });
-        if (session) {
-          activeSessions.set(sessionId, {
-            sessionId,
-            status: session.status,
-            currentRoundId: session.currentRoundId,
-            activeQuestionId: null,
-            questionStartedAt: null,
-            questionEndsAt: null,
-            timerInterval: null,
-            buzzerOpen: false,
-            questionCompleted: false,
-          });
-        }
-      }
-
+      await getOrCreateSessionCache(sessionId);
       await broadcastState(sessionId);
     } catch (err) {
       console.error("Error in join-session handler:", err);
@@ -296,19 +330,7 @@ io.on("connection", (socket) => {
       socket.join(`admin:session:${sessionId}`);
       socket.data = { sessionId, isAdmin: true };
       
-      if (!activeSessions.has(sessionId)) {
-        activeSessions.set(sessionId, {
-          sessionId,
-          status: "ACTIVE",
-          currentRoundId: null,
-          activeQuestionId: null,
-          questionStartedAt: null,
-          questionEndsAt: null,
-          timerInterval: null,
-          buzzerOpen: false,
-          questionCompleted: false,
-        });
-      }
+      await getOrCreateSessionCache(sessionId);
       await broadcastState(sessionId);
     } catch (err) {
       console.error("Error in admin:join-session handler:", err);
@@ -724,22 +746,12 @@ io.on("connection", (socket) => {
         if (rfState.questionIndex < roundQuestions.length) {
           cache.activeQuestionId = roundQuestions[rfState.questionIndex].id;
           rfState.questionTimeLeft = rfState.config.questionTimeLimit;
-          rfState.pausedForSelection = true;
-          cache.questionStartedAt = new Date(Date.now() + 1500);
-          cache.questionEndsAt = new Date(Date.now() + (rfState.config.questionTimeLimit + 1.5) * 1000);
+          rfState.pausedForSelection = false;
+          cache.questionStartedAt = new Date();
+          cache.questionEndsAt = new Date(Date.now() + rfState.config.questionTimeLimit * 1000);
           
           socket.emit("answer-feedback", { success: true, message: "Answer logged" });
           await broadcastState(sessionId);
-
-          setTimeout(async () => {
-            const currentCache = activeSessions.get(sessionId);
-            if (currentCache && currentCache.rapidFireState && currentCache.rapidFireState.isRunning) {
-              currentCache.rapidFireState.pausedForSelection = false;
-              currentCache.questionStartedAt = new Date();
-              currentCache.questionEndsAt = new Date(Date.now() + currentCache.rapidFireState.config.questionTimeLimit * 1000);
-              await broadcastState(sessionId);
-            }
-          }, 1500);
         } else {
           rfState.isRunning = false;
           if (rfState.timerInterval) clearInterval(rfState.timerInterval);
@@ -1315,21 +1327,11 @@ io.on("connection", (socket) => {
       if (rfState.questionIndex < roundQuestions.length) {
         cache.activeQuestionId = roundQuestions[rfState.questionIndex].id;
         rfState.questionTimeLeft = rfState.config.questionTimeLimit;
-        rfState.pausedForSelection = true;
-        cache.questionStartedAt = new Date(Date.now() + 1500);
-        cache.questionEndsAt = new Date(Date.now() + (rfState.config.questionTimeLimit + 1.5) * 1000);
+        rfState.pausedForSelection = false;
+        cache.questionStartedAt = new Date();
+        cache.questionEndsAt = new Date(Date.now() + rfState.config.questionTimeLimit * 1000);
         
         await broadcastState(sessionId);
-
-        setTimeout(async () => {
-          const currentCache = activeSessions.get(sessionId);
-          if (currentCache && currentCache.rapidFireState && currentCache.rapidFireState.isRunning) {
-            currentCache.rapidFireState.pausedForSelection = false;
-            currentCache.questionStartedAt = new Date();
-            currentCache.questionEndsAt = new Date(Date.now() + currentCache.rapidFireState.config.questionTimeLimit * 1000);
-            await broadcastState(sessionId);
-          }
-        }, 1500);
       } else {
         rfState.isRunning = false;
         if (rfState.timerInterval) clearInterval(rfState.timerInterval);
@@ -1513,22 +1515,28 @@ io.on("connection", (socket) => {
       console.log(`Socket disconnected: ${socket.id}`);
       const participantId = socket.data?.participantId;
       if (participantId) {
-        // Safe check: Only set isConnected to false if no other socket is active for this participant
-        const sockets = await io.fetchSockets();
-        const stillConnected = sockets.some(
-          (s) => s.data?.participantId === participantId && s.id !== socket.id
-        );
-        if (!stillConnected) {
-          await prisma.quizParticipant.update({
-            where: { id: participantId },
-            data: { isConnected: false },
-          }).catch((e) => console.error("Disconnect status update error:", e));
-        }
-        
-        const sessionId = socket.data?.sessionId;
-        if (sessionId) {
-          await broadcastState(sessionId);
-        }
+        // Wait 3 seconds to debounce reconnection
+        setTimeout(async () => {
+          try {
+            const sockets = await io.fetchSockets();
+            const stillConnected = sockets.some(
+              (s) => s.data?.participantId === participantId
+            );
+            if (!stillConnected) {
+              await prisma.quizParticipant.update({
+                where: { id: participantId },
+                data: { isConnected: false },
+              }).catch((e) => console.error("Disconnect status update error:", e));
+              
+              const sessionId = socket.data?.sessionId;
+              if (sessionId) {
+                await broadcastState(sessionId);
+              }
+            }
+          } catch (e) {
+            console.error("Disconnect deferred check error:", e);
+          }
+        }, 3000);
       }
     } catch (err) {
       console.error("Disconnect handler error:", err);

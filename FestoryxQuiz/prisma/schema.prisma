@@ -447,6 +447,12 @@ model QuizSession {
   startedAt           DateTime?
   endedAt             DateTime?
   currentRoundId      String?
+  activeQuestionId    String?
+  questionStartedAt   DateTime?
+  questionEndsAt      DateTime?
+  buzzerOpen          Boolean                   @default(false)
+  questionCompleted   Boolean                   @default(false)
+  rapidFireState      Json?
   createdAt           DateTime                  @default(now())
   updatedAt           DateTime                  @updatedAt
   rounds              QuizRound[]
