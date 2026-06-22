@@ -1,5 +1,5 @@
 
-<div align="center">
+<div align="center" style="background-color: black;">
   <img src="FestoryxWeb/public/Logo.gif" alt="Festoryx Logo" width="200" />
   <h1>Festoryx</h1>
   <p><strong>The Production-Minded Event Operating System & Real-Time Competition SaaS</strong></p>
