@@ -24,6 +24,7 @@ export function QuizFormClient({ events, initialData }: QuizFormClientProps) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<QuizInput>({
     resolver: zodResolver(quizSchema),
@@ -31,7 +32,7 @@ export function QuizFormClient({ events, initialData }: QuizFormClientProps) {
       ? {
           name: initialData.name,
           description: initialData.description || "",
-          eventId: initialData.eventId || null,
+          eventId: initialData.eventId || (events[0]?.id || ""),
           mode: initialData.mode,
           status: initialData.status,
           settings: initialData.settings || {
@@ -42,7 +43,7 @@ export function QuizFormClient({ events, initialData }: QuizFormClientProps) {
       : {
           name: "",
           description: "",
-          eventId: null,
+          eventId: events[0]?.id || "",
           mode: "SOLO",
           status: "DRAFT",
           settings: {
@@ -56,7 +57,7 @@ export function QuizFormClient({ events, initialData }: QuizFormClientProps) {
     // Convert empty eventId to null for the database
     const cleanedData = {
       ...data,
-      eventId: data.eventId || null,
+      eventId: data.eventId || (events[0]?.id || ""),
       settings: {
         publicLeaderboard: data.settings?.publicLeaderboard === true || data.settings?.publicLeaderboard === "true",
         publicAuditorium: data.settings?.publicAuditorium === true || data.settings?.publicAuditorium === "true",
@@ -189,24 +190,18 @@ export function QuizFormClient({ events, initialData }: QuizFormClientProps) {
           </div>
         </div>
 
-        {/* Link to Event */}
+        {/* Link to Event (Statically displayed) */}
         <div className="space-y-1.5">
-          <label htmlFor="eventId" className="block text-sm font-medium text-gray-300">
-            Associated event (optional)
+          <label className="block text-sm font-medium text-gray-300">
+            Associated Event
           </label>
-          <select
-            id="eventId"
-            disabled={isPending || isArchived}
+          <div className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white font-medium">
+            {events.find(e => e.id === watch("eventId"))?.name || events[0]?.name || "No quiz-enabled event found"}
+          </div>
+          <input
+            type="hidden"
             {...register("eventId")}
-            className="w-full rounded-xl border border-white/10 bg-[#1a1a2e] px-4 py-2.5 text-white outline-none transition-colors focus:border-indigo-500 disabled:opacity-50"
-          >
-            <option value="">No associated event (Standalone Quiz)</option>
-            {events.map((evt) => (
-              <option key={evt.id} value={evt.id}>
-                {evt.name}
-              </option>
-            ))}
-          </select>
+          />
           {errors.eventId && (
             <p className="text-xs text-red-400">{errors.eventId.message}</p>
           )}

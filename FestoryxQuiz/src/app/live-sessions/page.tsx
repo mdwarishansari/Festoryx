@@ -142,11 +142,11 @@ export default async function PublicLiveSessionsPage() {
                       <div className="mt-4 space-y-2 text-xs text-gray-400">
                         <div className="flex items-center gap-2">
                           <Building className="w-3.5 h-3.5 text-gray-500" />
-                          <span className="truncate">Host: {session.quiz.event.organization.name}</span>
+                          <span className="truncate">Host: {session.quiz.event?.organization?.name || "Festoryx Host"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Calendar className="w-3.5 h-3.5 text-gray-500" />
-                          <span className="truncate">Event: {session.quiz.event.name}</span>
+                          <span className="truncate">Event: {session.quiz.event?.name || "Standalone Quiz"}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="w-3.5 h-3.5 text-gray-500" />

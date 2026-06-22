@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import SocketSettingsForm from "./socket-settings-form";
 import SiteSettingsForm from "./site-settings-form";
-import { Shield, Link, Database, Users, BookOpen, Activity, Play } from "lucide-react";
+import { Shield, Users, BookOpen, Activity, Play } from "lucide-react";
 import { requireAuth, isSuperAdmin } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getSettings } from "@/actions/settings.actions";
@@ -84,44 +83,9 @@ export default async function AdminSettingsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="max-w-2xl">
         {/* Site Branding Settings */}
         <SiteSettingsForm initialSettings={siteSettings || {}} />
-
-        <div className="space-y-6">
-          {/* Dynamic Socket Server Config */}
-          <SocketSettingsForm initialSocketUrl={socketUrl || ""} />
-
-          {/* Connection strings & diagnosis */}
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-xl space-y-4 h-fit">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2 font-heading">
-              <Link className="h-5 w-5 text-indigo-400" />
-              Platform Integration & Diagnostics
-            </h3>
-            <p className="text-xs text-gray-400">
-              System diagnostics and connection addresses.
-            </p>
-
-            <div className="space-y-3 pt-2">
-              <div>
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold block">Shared database URL</span>
-                <div className="flex items-center gap-2 bg-black/25 border border-white/5 p-2 rounded-lg text-xs font-mono text-gray-400 mt-1 truncate">
-                  <Database className="h-4.5 w-4.5 text-indigo-500 shrink-0" />
-                  <span className="truncate" title={maskedDbUrl}>{maskedDbUrl}</span>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold block">Frontend Local URL</span>
-                <div className="bg-black/25 border border-white/5 p-2 rounded-lg text-xs font-mono text-indigo-300 mt-1">
-                  {process.env.NEXT_PUBLIC_SITE_URL || "https://festoryx-quiz.vercel.app"}
-                </div>
-              </div>
-
-              {/* Socket URLs hidden as requested */}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Password warning/note section */}

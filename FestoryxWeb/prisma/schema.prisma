@@ -418,8 +418,8 @@ model Quiz {
   id             String              @id @default(cuid())
   name           String
   description    String?             @db.Text
-  eventId        String
-  event          Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventId        String?
+  event          Event?              @relation(fields: [eventId], references: [id], onDelete: SetNull)
   mode           QuizMode            @default(SOLO)
   status         QuizStatus          @default(DRAFT)
   settings       Json?               // Configurable settings per quiz

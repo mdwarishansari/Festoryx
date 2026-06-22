@@ -184,12 +184,22 @@ export async function getEvents(): Promise<{ id: string; name: string }[]> {
     const isSuper = isSuperAdmin(user);
 
     const whereClause: any = {
-      isQuizEvent: true,
       organization: {
         settings: {
           showQuiz: true,
         },
       },
+      OR: [
+        { isQuizEvent: true },
+        {
+          modules: {
+            some: {
+              module: "QUIZ_ARENA",
+              enabled: true,
+            },
+          },
+        },
+      ],
     };
 
     if (!isSuper) {
