@@ -31,7 +31,30 @@ async function getOrgIdForCurrentUser(): Promise<string> {
       where: { organizationId: orgId },
     });
 
-    if (!settings || !settings.showQuiz) {
+    const hasQuizEvent = await prisma.event.findFirst({
+      where: {
+        organizationId: orgId,
+        OR: [
+          { isQuizEvent: true },
+          {
+            modules: {
+              some: {
+                module: "QUIZ_ARENA",
+                enabled: true
+              }
+            }
+          }
+        ]
+      }
+    });
+
+    if (hasQuizEvent && (!settings || !settings.showQuiz)) {
+      await prisma.orgSettings.upsert({
+        where: { organizationId: orgId },
+        update: { showQuiz: true },
+        create: { organizationId: orgId, showQuiz: true }
+      });
+    } else if ((!settings || !settings.showQuiz) && !hasQuizEvent) {
       throw new Error("Quiz Arena is not enabled for your organization.");
     }
   }
@@ -134,7 +157,30 @@ export async function createQuiz(data: Record<string, any>): Promise<ActionRespo
       const settings = await prisma.orgSettings.findUnique({
         where: { organizationId: orgId },
       });
-      if (!settings || !settings.showQuiz) {
+      const hasQuizEvent = await prisma.event.findFirst({
+        where: {
+          organizationId: orgId,
+          OR: [
+            { isQuizEvent: true },
+            {
+              modules: {
+                some: {
+                  module: "QUIZ_ARENA",
+                  enabled: true
+                }
+              }
+            }
+          ]
+        }
+      });
+
+      if (hasQuizEvent && (!settings || !settings.showQuiz)) {
+        await prisma.orgSettings.upsert({
+          where: { organizationId: orgId },
+          update: { showQuiz: true },
+          create: { organizationId: orgId, showQuiz: true }
+        });
+      } else if ((!settings || !settings.showQuiz) && !hasQuizEvent) {
         return { success: false, error: "Quiz Arena is not enabled for your organization." };
       }
     }
