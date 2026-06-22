@@ -4,11 +4,20 @@ import { prisma } from "@/lib/prisma";
 import { questionSchema } from "@/schemas/question.schema";
 import { revalidatePath } from "next/cache";
 import type { ActionResponse } from "@/types";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
 
 async function verifyQuizAccess(quizId: string): Promise<void> {
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
+
+  const isSuper = isSuperAdmin(user);
+  if (isSuper) {
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+    });
+    if (!quiz) throw new Error("Quiz not found");
+    return;
+  }
 
   const member = await prisma.organizationMember.findFirst({
     where: { userId: user.id },
@@ -172,30 +181,27 @@ export async function getEvents(): Promise<{ id: string; name: string }[]> {
     const user = await getCurrentUser();
     if (!user) return [];
 
-    const isSuper = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
+    const isSuper = isSuperAdmin(user);
 
-    if (isSuper) {
-      return await prisma.event.findMany({
-        select: { id: true, name: true },
-        orderBy: { name: "asc" },
-      });
-    }
-
-    const member = await prisma.organizationMember.findFirst({
-      where: { userId: user.id },
-    });
-    if (!member) return [];
-
-    return await prisma.event.findMany({
-      where: {
-        organizationId: member.organizationId,
-        modules: {
-          some: {
-            module: "QUIZ_ARENA",
-            enabled: true,
-          },
+    const whereClause: any = {
+      isQuizEvent: true,
+      organization: {
+        settings: {
+          showQuiz: true,
         },
       },
+    };
+
+    if (!isSuper) {
+      const member = await prisma.organizationMember.findFirst({
+        where: { userId: user.id },
+      });
+      if (!member) return [];
+      whereClause.organizationId = member.organizationId;
+    }
+
+    return await prisma.event.findMany({
+      where: whereClause,
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     });

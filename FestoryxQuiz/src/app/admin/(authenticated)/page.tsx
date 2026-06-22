@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { formatDateTime, formatRelativeTime } from "@/lib/utils";
 import { SocketStatusIndicator } from "@/components/shared/status-indicator";
+import { requireAuth, isSuperAdmin } from "@/lib/auth";
 import {
   BookOpen,
   Activity,
@@ -11,52 +12,119 @@ import {
   Settings,
   PlusCircle,
   ArrowRight,
-  TrendingUp,
-  Award,
-  Server,
-  Terminal,
-  Key,
-  Database,
-  RefreshCw,
+  Shield,
+  Building,
+  Calendar,
+  Layers,
 } from "lucide-react";
 
-async function getDashboardData() {
+async function getDashboardData(user: any, isSuper: boolean) {
   try {
-    const [
-      totalQuizzes,
-      activeSessionsCount,
-      totalQuestions,
-      totalParticipants,
-      recentSessions,
-    ] = await Promise.all([
-      prisma.quiz.count(),
-      prisma.quizSession.count({ where: { status: "ACTIVE" } }),
-      prisma.quizQuestion.count(),
-      prisma.quizParticipant.count(),
-      prisma.quizSession.findMany({
-        take: 5,
-        orderBy: { createdAt: "desc" },
-        include: {
-          quiz: { select: { name: true, mode: true } },
-          _count: { select: { participants: true } },
-        },
-      }),
-    ]);
+    if (isSuper) {
+      const [
+        totalOrgs,
+        quizEnabledOrgs,
+        totalEvents,
+        quizEvents,
+        totalParticipants,
+        quizParticipants,
+        totalQuizzes,
+        liveSessions,
+        questionBankCount,
+        recentSessions,
+      ] = await Promise.all([
+        prisma.organization.count(),
+        prisma.orgSettings.count({ where: { showQuiz: true } }),
+        prisma.event.count(),
+        prisma.event.count({ where: { isQuizEvent: true } }),
+        prisma.registration.count(),
+        prisma.registration.count({ where: { event: { isQuizEvent: true } } }),
+        prisma.quiz.count(),
+        prisma.quizSession.count({ where: { status: "ACTIVE" } }),
+        prisma.quizQuestion.count(),
+        prisma.quizSession.findMany({
+          take: 5,
+          orderBy: { createdAt: "desc" },
+          include: {
+            quiz: { select: { name: true, mode: true } },
+            _count: { select: { participants: true } },
+          },
+        }),
+      ]);
 
-    return {
-      totalQuizzes,
-      activeSessionsCount,
-      totalQuestions,
-      totalParticipants,
-      recentSessions,
-    };
+      return {
+        isSuper: true,
+        totalOrgs,
+        quizEnabledOrgs,
+        totalEvents,
+        quizEvents,
+        totalParticipants,
+        quizParticipants,
+        totalQuizzes,
+        liveSessions,
+        questionBankCount,
+        recentSessions,
+      };
+    } else {
+      const member = await prisma.organizationMember.findFirst({
+        where: { userId: user.id },
+      });
+      if (!member) {
+        return {
+          isSuper: false,
+          ownEvents: 0,
+          ownQuizEvents: 0,
+          ownParticipants: 0,
+          ownQuizzes: 0,
+          ownSessions: 0,
+          recentSessions: [],
+        };
+      }
+      const orgId = member.organizationId;
+
+      const [
+        ownEvents,
+        ownQuizEvents,
+        ownParticipants,
+        ownQuizzes,
+        ownSessions,
+        recentSessions,
+      ] = await Promise.all([
+        prisma.event.count({ where: { organizationId: orgId } }),
+        prisma.event.count({ where: { organizationId: orgId, isQuizEvent: true } }),
+        prisma.registration.count({ where: { organizationId: orgId } }),
+        prisma.quiz.count({ where: { organizationId: orgId } }),
+        prisma.quizSession.count({ where: { quiz: { organizationId: orgId }, status: "ACTIVE" } }),
+        prisma.quizSession.findMany({
+          where: { quiz: { organizationId: orgId } },
+          take: 5,
+          orderBy: { createdAt: "desc" },
+          include: {
+            quiz: { select: { name: true, mode: true } },
+            _count: { select: { participants: true } },
+          },
+        }),
+      ]);
+
+      return {
+        isSuper: false,
+        ownEvents,
+        ownQuizEvents,
+        ownParticipants,
+        ownQuizzes,
+        ownSessions,
+        recentSessions,
+      };
+    }
   } catch (error) {
-    console.warn("⚠️ [Prisma] Database is not reachable. Using fallback dashboard data.");
+    console.error("Failed to fetch dashboard data:", error);
     return {
-      totalQuizzes: 0,
-      activeSessionsCount: 0,
-      totalQuestions: 0,
-      totalParticipants: 0,
+      isSuper: false,
+      ownEvents: 0,
+      ownQuizEvents: 0,
+      ownParticipants: 0,
+      ownQuizzes: 0,
+      ownSessions: 0,
       recentSessions: [],
     };
   }
@@ -70,53 +138,30 @@ const sessionStatusStyles: Record<string, string> = {
 };
 
 export default async function AdminDashboardPage() {
-  const data = await getDashboardData();
-
-  const statCards = [
-    {
-      title: "Total Quizzes",
-      value: data.totalQuizzes,
-      icon: BookOpen,
-      gradient: "from-indigo-600 to-indigo-800",
-      iconBg: "bg-indigo-500/20",
-      iconColor: "text-indigo-300",
-    },
-    {
-      title: "Active Live Sessions",
-      value: data.activeSessionsCount,
-      icon: Activity,
-      gradient: "from-emerald-600 to-emerald-800",
-      iconBg: "bg-emerald-500/20",
-      iconColor: "text-emerald-300",
-    },
-    {
-      title: "Questions Pool",
-      value: data.totalQuestions,
-      icon: HelpCircle,
-      gradient: "from-purple-600 to-purple-800",
-      iconBg: "bg-purple-500/20",
-      iconColor: "text-purple-300",
-    },
-    {
-      title: "Total Participants Joined",
-      value: data.totalParticipants,
-      icon: Users,
-      gradient: "from-amber-600 to-amber-800",
-      iconBg: "bg-amber-500/20",
-      iconColor: "text-amber-300",
-    },
-  ];
+  const user = await requireAuth();
+  const isSuper = isSuperAdmin(user);
+  const data = await getDashboardData(user, isSuper);
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white md:text-3xl font-heading">
-            Quiz Arena Dashboard
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-white md:text-3xl font-heading">
+              Quiz Arena Dashboard
+            </h1>
+            {isSuper && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 border border-indigo-500/25 px-2.5 py-0.5 text-xs font-semibold text-indigo-300">
+                <Shield className="h-3 w-3" />
+                Super Admin
+              </span>
+            )}
+          </div>
           <p className="mt-1 text-gray-400">
-            Monitor your live quiz competitions and coordinate rounds in real-time.
+            {isSuper
+              ? "Global overview and system metrics control room."
+              : "Monitor your live quiz competitions and coordinate rounds in real-time."}
           </p>
         </div>
         <div className="shrink-0">
@@ -124,30 +169,108 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {statCards.map((card) => (
-          <div
-            key={card.title}
-            className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${card.gradient} p-5 shadow-lg border border-white/5`}
-          >
+      {/* Metrics Cards */}
+      {isSuper ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-900 to-indigo-950 p-5 shadow-lg border border-white/5">
             <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/5" />
-            <div className="absolute -right-2 -top-2 h-16 w-16 rounded-full bg-white/5" />
-
             <div className="relative">
-              <div
-                className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${card.iconBg}`}
-              >
-                <card.icon className={`h-5 w-5 ${card.iconColor}`} />
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20 text-blue-300">
+                <Building className="h-5 w-5" />
               </div>
-              <p className="text-sm font-medium text-white/70">{card.title}</p>
-              <p className="mt-1 text-3xl font-bold text-white font-heading">
-                {card.value}
-              </p>
+              <p className="text-sm font-medium text-white/70">Total Organizations</p>
+              <p className="mt-1 text-3xl font-bold text-white font-heading">{(data as any).totalOrgs}</p>
+              <p className="text-xs text-gray-400 mt-2">{(data as any).quizEnabledOrgs} Quiz-Enabled</p>
             </div>
           </div>
-        ))}
-      </div>
+
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-900 to-purple-950 p-5 shadow-lg border border-white/5">
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/5" />
+            <div className="relative">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-300">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium text-white/70">Total Events</p>
+              <p className="mt-1 text-3xl font-bold text-white font-heading">{(data as any).totalEvents}</p>
+              <p className="text-xs text-gray-400 mt-2">{(data as any).quizEvents} Quiz Events</p>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900 to-pink-950 p-5 shadow-lg border border-white/5">
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/5" />
+            <div className="relative">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20 text-purple-300">
+                <Users className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium text-white/70">Total Participants</p>
+              <p className="mt-1 text-3xl font-bold text-white font-heading">{(data as any).totalParticipants}</p>
+              <p className="text-xs text-gray-400 mt-2">{(data as any).quizParticipants} in Quizzes</p>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-900 to-teal-950 p-5 shadow-lg border border-white/5">
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/5" />
+            <div className="relative">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300">
+                <BookOpen className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium text-white/70">Total Quizzes</p>
+              <p className="mt-1 text-3xl font-bold text-white font-heading">{(data as any).totalQuizzes}</p>
+              <p className="text-xs text-gray-400 mt-2">{(data as any).liveSessions} Live Lobbies</p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-900 to-indigo-950 p-5 shadow-lg border border-white/5">
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/5" />
+            <div className="relative">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-300">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium text-white/70">Your Events</p>
+              <p className="mt-1 text-3xl font-bold text-white font-heading">{(data as any).ownEvents}</p>
+              <p className="text-xs text-gray-400 mt-2">{(data as any).ownQuizEvents} Quiz-enabled</p>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-900 to-purple-950 p-5 shadow-lg border border-white/5">
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/5" />
+            <div className="relative">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/20 text-purple-300">
+                <Users className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium text-white/70">Your Participants</p>
+              <p className="mt-1 text-3xl font-bold text-white font-heading">{(data as any).ownParticipants}</p>
+              <p className="text-xs text-gray-400 mt-2">Registered members</p>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-900 to-pink-950 p-5 shadow-lg border border-white/5">
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/5" />
+            <div className="relative">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-pink-500/20 text-pink-300">
+                <BookOpen className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium text-white/70">Your Quizzes</p>
+              <p className="mt-1 text-3xl font-bold text-white font-heading">{(data as any).ownQuizzes}</p>
+              <p className="text-xs text-gray-400 mt-2">Setup structures</p>
+            </div>
+          </div>
+
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-900 to-emerald-950 p-5 shadow-lg border border-white/5">
+            <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white/5" />
+            <div className="relative">
+              <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300">
+                <Activity className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-medium text-white/70">Live Lobbies</p>
+              <p className="mt-1 text-3xl font-bold text-white font-heading">{(data as any).ownSessions}</p>
+              <p className="text-xs text-gray-400 mt-2">Currently running</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Grid */}
       <div className="grid gap-8 lg:grid-cols-3">
@@ -257,7 +380,7 @@ export default async function AdminDashboardPage() {
               <li>Wait for participants and launch!</li>
             </ol>
             <Link
-              href="/admin/quizzes"
+              href="/admin/quizzes/new"
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:bg-indigo-500"
             >
               <PlusCircle className="h-4 w-4" />
@@ -279,7 +402,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Quick actions grid */}
+      {/* Quick navigation */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-white">
           Quick Navigation
@@ -318,7 +441,7 @@ export default async function AdminDashboardPage() {
             className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-200 hover:border-amber-500/30 hover:bg-amber-500/5"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 transition-colors group-hover:bg-amber-500/20">
-              <Play className="h-5 w-5 text-amber-400 animate-pulse" />
+              <Play className="h-5 w-5 text-amber-400" />
             </div>
             <div>
               <p className="text-sm font-medium text-white">
@@ -328,21 +451,22 @@ export default async function AdminDashboardPage() {
             </div>
           </Link>
 
-          <Link
-            href="/admin/settings"
-            className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-200 hover:border-emerald-500/30 hover:bg-emerald-500/5"
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 transition-colors group-hover:bg-emerald-500/20">
-              <Settings className="h-5 w-5 text-emerald-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-white">Platform Settings</p>
-              <p className="text-xs text-gray-500">Configure global timers</p>
-            </div>
-          </Link>
+          {isSuper && (
+            <Link
+              href="/admin/settings"
+              className="group flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 p-4 transition-all duration-200 hover:border-emerald-500/30 hover:bg-emerald-500/5"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 transition-colors group-hover:bg-emerald-500/20">
+                <Settings className="h-5 w-5 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Platform Settings</p>
+                <p className="text-xs text-gray-500">Configure global timers</p>
+              </div>
+            </Link>
+          )}
         </div>
       </div>
-
     </div>
   );
 }

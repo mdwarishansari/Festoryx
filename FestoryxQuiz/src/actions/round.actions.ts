@@ -3,11 +3,20 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { ActionResponse } from "@/types";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
 
 async function verifyQuizAccess(quizId: string): Promise<void> {
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
+
+  const isSuper = isSuperAdmin(user);
+  if (isSuper) {
+    const quiz = await prisma.quiz.findUnique({
+      where: { id: quizId },
+    });
+    if (!quiz) throw new Error("Quiz not found");
+    return;
+  }
 
   const member = await prisma.organizationMember.findFirst({
     where: { userId: user.id },

@@ -111,6 +111,7 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
           problemReleaseTime: formatDateTimeInput(initialData.problemReleaseTime),
           visibility: initialData.visibility || "PUBLIC",
           showOnHomepage: initialData.showOnHomepage ?? true,
+          isQuizEvent: initialData.isQuizEvent ?? false,
           modules: initialData.modules ? initialData.modules.map((m: any) => m.module) : ["REGISTRATION"],
           formFields: mergeFormFields(initialData.formFields),
         }
@@ -137,6 +138,7 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
           problemStatement: "",
           problemReleaseTime: "",
           isPublished: false,
+          isQuizEvent: false,
           showOnHomepage: true,
           isRegistrationOpen: true,
           isSubmissionOpen: false,
@@ -615,6 +617,18 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
                   <div>
                     <span className="block text-sm font-medium text-white">Show on Homepage</span>
                     <span className="text-xs text-gray-500">Feature this event in the "Arenas" section of the landing page.</span>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    {...register("isQuizEvent")}
+                    className="mt-1 h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <div>
+                    <span className="block text-sm font-medium text-white">Is Quiz Event</span>
+                    <span className="text-xs text-gray-500">Make this competition visible and manageable within the Quiz Arena module.</span>
                   </div>
                 </label>
               </div>

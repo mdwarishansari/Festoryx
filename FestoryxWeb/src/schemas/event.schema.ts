@@ -38,6 +38,7 @@ export const eventSchema = z.object({
     return isNaN(d.getTime()) ? undefined : d;
   }),
   isPublished: z.boolean().default(false),
+  isQuizEvent: z.boolean().default(false),
   showOnHomepage: z.boolean().default(true),
   isRegistrationOpen: z.boolean().default(true),
   isSubmissionOpen: z.boolean().default(false),

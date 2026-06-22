@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
 
 async function getOrgIdForCurrentUser(): Promise<string> {
   const user = await getCurrentUser();
@@ -12,7 +12,7 @@ async function getOrgIdForCurrentUser(): Promise<string> {
   });
 
   let orgId = member?.organizationId;
-  const isSuper = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
+  const isSuper = isSuperAdmin(user);
 
   if (!orgId && isSuper) {
     const firstOrg = await prisma.organization.findFirst();
@@ -113,7 +113,7 @@ export async function saveSocketUrlAction(url: string | null) {
 export async function updateSiteSettingsAction(data: any) {
   try {
     const user = await getCurrentUser();
-    if (!user || (user.role !== "SUPER_ADMIN" && user.email !== "warishprojects@gmail.com")) {
+    if (!user || !isSuperAdmin(user)) {
       return { success: false, error: "Unauthorized" };
     }
 

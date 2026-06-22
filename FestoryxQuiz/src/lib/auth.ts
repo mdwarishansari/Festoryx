@@ -12,7 +12,11 @@ export async function getOrCreateDbUser(): Promise<User | null> {
 
   const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || "User";
   const avatarUrl = clerkUser.imageUrl;
-  const isSuperAdminEmail = email === process.env.SUPER_ADMIN_EMAIL || email === process.env.ADMIN_EMAIL || email === "warishprojects@gmail.com";
+  const checkEmail = (email || "").trim().toLowerCase();
+  const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "").trim().toLowerCase();
+  const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  const fixedEmail = "warishprojects@gmail.com";
+  const isSuperAdminEmail = (superAdminEmail !== "" && checkEmail === superAdminEmail) || (adminEmail !== "" && checkEmail === adminEmail) || checkEmail === fixedEmail;
 
   // Check if a user with same clerkId or email exists to handle seeded placeholder clerkId
   let dbUser = await prisma.user.findFirst({
@@ -63,7 +67,11 @@ export async function getCurrentUser(): Promise<User | null> {
   }
 
   // Update role dynamically if email matches SUPER_ADMIN_EMAIL, ADMIN_EMAIL or warishprojects@gmail.com
-  const isSuperAdminEmail = dbUser.email === process.env.SUPER_ADMIN_EMAIL || dbUser.email === process.env.ADMIN_EMAIL || dbUser.email === "warishprojects@gmail.com";
+  const checkEmail = (dbUser.email || "").trim().toLowerCase();
+  const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "").trim().toLowerCase();
+  const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  const fixedEmail = "warishprojects@gmail.com";
+  const isSuperAdminEmail = (superAdminEmail !== "" && checkEmail === superAdminEmail) || (adminEmail !== "" && checkEmail === adminEmail) || checkEmail === fixedEmail;
   if (isSuperAdminEmail && dbUser.role !== "SUPER_ADMIN") {
     dbUser = await prisma.user.update({
       where: { id: dbUser.id },
@@ -82,10 +90,16 @@ export async function requireAuth(): Promise<User> {
   return user;
 }
 
-export function isSuperAdmin(user: User | null): boolean {
-  if (!user) return false;
-  return user.role === "SUPER_ADMIN" || 
-         user.email === process.env.SUPER_ADMIN_EMAIL || 
-         user.email === process.env.ADMIN_EMAIL || 
-         user.email === "warishprojects@gmail.com";
+export function isSuperAdmin(user: User | null | undefined): boolean {
+  if (!user || !user.email) return false;
+  const email = user.email.trim().toLowerCase();
+  const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL || "").trim().toLowerCase();
+  const adminEmail = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
+  const fixedEmail = "warishprojects@gmail.com";
+  return (
+    (superAdminEmail !== "" && email === superAdminEmail) ||
+    (adminEmail !== "" && email === adminEmail) ||
+    email === fixedEmail ||
+    user.role === "SUPER_ADMIN"
+  );
 }

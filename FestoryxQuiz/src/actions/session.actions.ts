@@ -6,7 +6,7 @@ import { generateAccessCode } from "@/lib/quiz-utils";
 import { revalidatePath } from "next/cache";
 import type { ActionResponse, QuizSessionWithDetails } from "@/types";
 import { sendSessionLiveEmails, sendSessionResultEmails } from "@/lib/email";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
 
 async function getOrgIdForCurrentUser(): Promise<string> {
   const user = await getCurrentUser();
@@ -17,7 +17,7 @@ async function getOrgIdForCurrentUser(): Promise<string> {
   });
 
   let orgId = member?.organizationId;
-  const isSuper = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
+  const isSuper = isSuperAdmin(user);
 
   if (!orgId && isSuper) {
     const firstOrg = await prisma.organization.findFirst();
@@ -56,8 +56,8 @@ async function verifySessionAccess(sessionId: string): Promise<void> {
 
   if (!session) throw new Error("Session not found");
 
-  const isSuperAdmin = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
-  if (!isSuperAdmin && (!member || member.organizationId !== session.quiz.organizationId)) {
+  const isSuper = isSuperAdmin(user);
+  if (!isSuper && (!member || member.organizationId !== session.quiz.organizationId)) {
     throw new Error("Unauthorized");
   }
 
@@ -202,8 +202,8 @@ export async function createSession(data: Record<string, any>): Promise<ActionRe
       return { success: false, error: "Quiz not found" };
     }
 
-    const isSuperAdmin = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
-    if (!isSuperAdmin && (!member || member.organizationId !== quiz.organizationId)) {
+    const isSuper = isSuperAdmin(user);
+    if (!isSuper && (!member || member.organizationId !== quiz.organizationId)) {
       return { success: false, error: "Unauthorized" };
     }
 

@@ -143,6 +143,7 @@ model Event {
   problemStatement     String?           @db.Text
   problemReleaseTime   DateTime?
   isPublished          Boolean           @default(false)
+  isQuizEvent          Boolean           @default(false)
   status               EventStatus       @default(DRAFT)
   isRegistrationOpen   Boolean           @default(true)
   isSubmissionOpen     Boolean           @default(false)
@@ -416,8 +417,8 @@ model Quiz {
   id             String              @id @default(cuid())
   name           String
   description    String?             @db.Text
-  eventId        String?
-  event          Event?              @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  eventId        String
+  event          Event               @relation(fields: [eventId], references: [id], onDelete: Cascade)
   mode           QuizMode            @default(SOLO)
   status         QuizStatus          @default(DRAFT)
   settings       Json?               // Configurable settings per quiz

@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { ActionResponse } from "@/types";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, isSuperAdmin } from "@/lib/auth";
 
 async function verifySessionAccess(sessionId: string): Promise<void> {
   const user = await getCurrentUser();
@@ -20,8 +20,8 @@ async function verifySessionAccess(sessionId: string): Promise<void> {
 
   if (!session) throw new Error("Session not found");
 
-  const isSuperAdmin = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
-  if (!isSuperAdmin && (!member || member.organizationId !== session.quiz.organizationId)) {
+  const isSuper = isSuperAdmin(user);
+  if (!isSuper && (!member || member.organizationId !== session.quiz.organizationId)) {
     throw new Error("Unauthorized");
   }
 
