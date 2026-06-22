@@ -60,7 +60,9 @@ export function HomeHero({ countdownDate }: HomeHeroProps) {
         <div className="absolute w-[900px] h-[900px] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.06)_0%,rgba(99,102,241,0.02)_50%,transparent_70%)] blur-[80px]" />
         
         {mounted && (
-          <div className="absolute top-[35%] flex items-center justify-center scale-90 md:scale-100 opacity-90 relative w-full h-[400px]">
+          <div className="absolute flex items-center justify-center scale-90 md:scale-100 opacity-90 w-full h-[400px]">
+            {/* Central Violet Core Glow */}
+            <div className="absolute w-[220px] h-[220px] rounded-full bg-violet-600/30 blur-[40px] animate-pulse z-0" />
             
             {/* 1. Lensed Einstein Ring (Light bent from behind, wrapping around the black hole vertically) */}
             <motion.div

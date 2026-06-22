@@ -11,14 +11,26 @@ async function getOrgIdForCurrentUser(): Promise<string> {
     where: { userId: user.id },
   });
 
-  if (member) return member.organizationId;
+  let orgId = member?.organizationId;
 
-  if (user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com") {
+  if (!orgId && (user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com")) {
     const firstOrg = await prisma.organization.findFirst();
-    if (firstOrg) return firstOrg.id;
+    if (firstOrg) orgId = firstOrg.id;
   }
 
-  throw new Error("No organization found for user");
+  if (!orgId) {
+    throw new Error("No organization found for user");
+  }
+
+  const settings = await prisma.orgSettings.findUnique({
+    where: { organizationId: orgId },
+  });
+
+  if (!settings || !settings.showQuiz) {
+    throw new Error("Quiz Arena is not enabled for your organization.");
+  }
+
+  return orgId;
 }
 
 export async function getSettings(): Promise<any | null> {

@@ -5,69 +5,43 @@ import { Trophy, Zap, Users, BarChart3, ArrowRight } from "lucide-react";
 import { SocketStatusIndicator } from "@/components/shared/status-indicator";
 import { prisma } from "@/lib/prisma";
 
+import { CosmicHero } from "@/components/shared/cosmic-hero";
+
 export const dynamic = "force-dynamic";
 
 export default async function LandingPage() {
   // Fetch active/recent quiz sessions to allow public spectators
-  const activeSessions = await prisma.quizSession.findMany({
+  const rawSessions = await prisma.quizSession.findMany({
     where: {
       status: { in: ["ACTIVE", "PAUSED", "WAITING", "COMPLETED"] },
     },
     include: {
-      quiz: { select: { name: true, mode: true } },
+      quiz: { select: { name: true, mode: true, settings: true } },
     },
     orderBy: { createdAt: "desc" },
-    take: 6,
   }).catch(() => []);
 
+  const activeSessions = rawSessions.filter((session) => {
+    const isLive = session.status === "ACTIVE" || session.status === "PAUSED" || session.status === "WAITING";
+    const settings = (session.quiz.settings as any) || {};
+    const showAuditorium = settings.publicAuditorium !== false;
+    const showLeaderboard = settings.publicLeaderboard !== false;
+
+    if (isLive && !showAuditorium) {
+      return false; // Hide live sessions with private auditorium
+    }
+    if (session.status === "COMPLETED" && !showLeaderboard) {
+      return false; // Hide completed sessions with private leaderboard
+    }
+    return true;
+  }).slice(0, 6);
+
   return (
-    <div className="flex min-h-screen flex-col bg-[#0f0f23]">
+    <div className="flex min-h-screen flex-col bg-[#030014]">
       <Header />
 
-      {/* Hero Section */}
-      <main className="flex-1 pt-24 md:pt-32 relative overflow-hidden">
-        {/* Glowing background radial blur */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -left-20 top-10 h-[400px] w-[400px] rounded-full bg-indigo-600/10 blur-[100px]" />
-          <div className="absolute -right-20 top-40 h-[400px] w-[400px] rounded-full bg-purple-600/10 blur-[100px]" />
-        </div>
-
-        {/* Hero Content */}
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 text-center space-y-8 animate-fade-in">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-sm text-indigo-400 font-medium">
-            <Trophy className="h-4 w-4" />
-            University Live Competition Portal
-          </div>
-
-          <h1 className="bg-gradient-to-r from-white via-indigo-200 to-indigo-400 bg-clip-text text-4xl sm:text-6xl font-extrabold tracking-tight text-transparent font-heading leading-tight max-w-4xl mx-auto">
-            Welcome to the <br />
-            <span className="gradient-text">Festoryx Quiz Arena</span>
-          </h1>
-
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-gray-400 leading-relaxed">
-            Participate in real-time solo or team quiz battles. Watch live questions, trigger fast buzzers, and check your rank on the live screen instantly.
-          </p>
-
-          <div className="flex justify-center pt-2">
-            <SocketStatusIndicator />
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <Link
-              href="/join"
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-indigo-600 px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:bg-indigo-500 hover:shadow-indigo-500/40 hover:scale-[1.02]"
-            >
-              Enter Game Lobby
-              <ArrowRight className="h-5 w-5" />
-            </Link>
-            <Link
-              href="/admin"
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-8 py-3.5 text-base font-semibold text-white transition-all hover:bg-white/10 hover:border-white/20"
-            >
-              Check Live Sessions
-            </Link>
-          </div>
-        </section>
+      <main className="flex-1">
+        <CosmicHero />
 
         {/* Live Sessions Section */}
         {activeSessions.length > 0 && (
@@ -120,20 +94,34 @@ export default async function LandingPage() {
                     </div>
 
                     <div className="mt-5 pt-4 border-t border-white/5 grid grid-cols-2 gap-3 text-center text-xs">
-                      <Link
-                        href={`/screen/${session.accessCode}`}
-                        target="_blank"
-                        className="rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 py-2.5 font-semibold text-white transition-all flex items-center justify-center gap-1 hover:border-white/25"
-                      >
-                        🖥️ Auditorium Screen
-                      </Link>
-                      <Link
-                        href={`/leaderboard/${session.accessCode}`}
-                        target="_blank"
-                        className="rounded-xl bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 hover:border-indigo-500 py-2.5 font-semibold text-indigo-300 hover:text-white transition-all flex items-center justify-center gap-1"
-                      >
-                        🏆 Leaderboard
-                      </Link>
+                      {((session.status === "ACTIVE" || session.status === "PAUSED" || session.status === "WAITING") &&
+                        ((session.quiz.settings as any)?.publicAuditorium !== false)) ? (
+                        <Link
+                          href={`/screen/${session.accessCode}`}
+                          target="_blank"
+                          className="rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 py-2.5 font-semibold text-white transition-all flex items-center justify-center gap-1 hover:border-white/25"
+                        >
+                          🖥️ Auditorium Screen
+                        </Link>
+                      ) : (
+                        <div className="rounded-xl bg-white/5 border border-white/5 py-2.5 font-semibold text-gray-600 cursor-not-allowed flex items-center justify-center gap-1">
+                          🔒 Private Screen
+                        </div>
+                      )}
+
+                      {((session.quiz.settings as any)?.publicLeaderboard !== false) ? (
+                        <Link
+                          href={`/leaderboard/${session.accessCode}`}
+                          target="_blank"
+                          className="rounded-xl bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 hover:border-indigo-500 py-2.5 font-semibold text-indigo-300 hover:text-white transition-all flex items-center justify-center gap-1"
+                        >
+                          🏆 Leaderboard
+                        </Link>
+                      ) : (
+                        <div className="rounded-xl bg-white/5 border border-white/5 py-2.5 font-semibold text-gray-600 cursor-not-allowed flex items-center justify-center gap-1">
+                          🔒 Private Rank
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

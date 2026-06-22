@@ -157,16 +157,10 @@ export function OrgClient({
     twitter: normalizeExternalUrl(socials.twitter || settingsSocials.twitter),
   };
 
-  // Collect all event banners to form the Gallery
-  const galleryImages = events
-    .map((e) => e.bannerUrl)
-    .filter((url): url is string => Boolean(url));
-
   // Determine active tabs and hide empty ones automatically
   const hasWinners = events.some((e) => e.winner1Id || e.winner2Id || e.winner3Id);
   const hasEvents = events.length > 0;
   const hasCountdown = !!nextEvent && !!timeLeft;
-  const hasGallery = galleryImages.length > 0;
   const hasLinks = !!org.websiteUrl || Object.values(mergedSocials).some(Boolean);
 
   const tabs = [
@@ -174,7 +168,6 @@ export function OrgClient({
     { id: "events", label: "Events", icon: Calendar, hidden: !hasEvents },
     { id: "winners", label: "Winners", icon: Trophy, hidden: !hasWinners },
     { id: "countdown", label: "Countdown", icon: Clock, hidden: !hasCountdown },
-    { id: "gallery", label: "Gallery", icon: ImageIcon, hidden: !hasGallery },
     { id: "links", label: "Links", icon: Globe, hidden: !hasLinks },
     { id: "quiz", label: "Quiz Arena", icon: Flame, hidden: !showQuiz },
     { id: "contact", label: "Contact", icon: Mail },
@@ -463,39 +456,6 @@ export function OrgClient({
                   <span>Go to Registration</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
-              </div>
-            </motion.div>
-          )}
-
-          {/* PANEL 5: GALLERY */}
-          {activeTab === "gallery" && (
-            <motion.div
-              key="gallery-panel"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-                {events
-                  .filter((e) => e.bannerUrl)
-                  .map((event, idx) => (
-                    <motion.div
-                      key={idx}
-                      whileHover={{ scale: 1.02 }}
-                      className="rounded-2xl overflow-hidden border border-white/10 bg-[#050212] group relative h-56 shadow-lg cursor-pointer"
-                    >
-                      <img
-                        src={event.bannerUrl}
-                        alt={event.name}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-                        <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider">Event Banner</span>
-                        <h4 className="text-white text-sm font-bold mt-1 line-clamp-1">{event.name}</h4>
-                      </div>
-                    </motion.div>
-                  ))}
               </div>
             </motion.div>
           )}

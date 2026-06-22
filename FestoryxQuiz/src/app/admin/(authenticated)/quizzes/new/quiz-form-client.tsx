@@ -34,7 +34,10 @@ export function QuizFormClient({ events, initialData }: QuizFormClientProps) {
           eventId: initialData.eventId || null,
           mode: initialData.mode,
           status: initialData.status,
-          settings: initialData.settings || {},
+          settings: initialData.settings || {
+            publicLeaderboard: true,
+            publicAuditorium: true,
+          },
         }
       : {
           name: "",
@@ -42,7 +45,10 @@ export function QuizFormClient({ events, initialData }: QuizFormClientProps) {
           eventId: null,
           mode: "SOLO",
           status: "DRAFT",
-          settings: {},
+          settings: {
+            publicLeaderboard: true,
+            publicAuditorium: true,
+          },
         },
   });
 
@@ -51,6 +57,10 @@ export function QuizFormClient({ events, initialData }: QuizFormClientProps) {
     const cleanedData = {
       ...data,
       eventId: data.eventId || null,
+      settings: {
+        publicLeaderboard: data.settings?.publicLeaderboard === true || data.settings?.publicLeaderboard === "true",
+        publicAuditorium: data.settings?.publicAuditorium === true || data.settings?.publicAuditorium === "true",
+      }
     };
 
     startTransition(async () => {
@@ -200,6 +210,47 @@ export function QuizFormClient({ events, initialData }: QuizFormClientProps) {
           {errors.eventId && (
             <p className="text-xs text-red-400">{errors.eventId.message}</p>
           )}
+        </div>
+
+        {/* Public Visibility Settings */}
+        <div className="space-y-4 rounded-xl border border-white/10 bg-white/5 p-4">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-indigo-400">Public Visibility Settings</h3>
+          
+          <div className="flex items-start gap-3">
+            <input
+              id="publicLeaderboard"
+              type="checkbox"
+              disabled={isPending || isArchived}
+              {...register("settings.publicLeaderboard")}
+              className="mt-1 h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-500"
+            />
+            <div>
+              <label htmlFor="publicLeaderboard" className="block text-sm font-medium text-gray-300 cursor-pointer">
+                Public Leaderboard Visibility
+              </label>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Allow anyone to view the final results and scoreboard for sessions spawned from this quiz.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <input
+              id="publicAuditorium"
+              type="checkbox"
+              disabled={isPending || isArchived}
+              {...register("settings.publicAuditorium")}
+              className="mt-1 h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-500"
+            />
+            <div>
+              <label htmlFor="publicAuditorium" className="block text-sm font-medium text-gray-300 cursor-pointer">
+                Public Auditorium Screen Visibility
+              </label>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Allow anyone to spectate the live questions and answers screen as a spectator.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Action button */}

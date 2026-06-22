@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Menu, X, Globe, Sparkles } from "lucide-react";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
+import { getSiteSettings } from "@/actions/settings.actions";
+
 const navLinks = [
   { href: "/", label: "Home" },
   { href: "/events", label: "Discover Events" },
@@ -16,6 +18,7 @@ const navLinks = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("/Logo.png");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +26,18 @@ export function Header() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    
+    // Fetch dynamic logo
+    getSiteSettings().then((settings) => {
+      if (settings?.headerLogoUrl) {
+        setLogoUrl(settings.headerLogoUrl);
+      } else if (settings?.logoUrl) {
+        setLogoUrl(settings.logoUrl);
+      }
+    }).catch((err) => {
+      console.error("Error loading header logo:", err);
+    });
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -38,7 +53,7 @@ export function Header() {
           <Link href="/" className="group flex items-center gap-2">
             <div className="h-8 w-8 overflow-hidden rounded-full">
               <img
-                src="/Logo.png"
+                src={logoUrl}
                 alt="Festoryx Logo"
                 className="h-full w-full object-cover"
               />

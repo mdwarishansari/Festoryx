@@ -23,6 +23,7 @@ export function OnboardingForm() {
     logoUrl: "",
     logoPublicId: "",
     websiteUrl: "",
+    showQuiz: false,
     socialLinks: {
       instagram: "",
       linkedin: "",
@@ -267,6 +268,25 @@ export function OnboardingForm() {
                 />
               </label>
             </div>
+          </div>
+        </div>
+
+        {/* Quiz Enablement Toggle */}
+        <div className="flex items-start gap-3 p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+          <input
+            id="showQuiz"
+            type="checkbox"
+            className="mt-1 h-4 w-4 rounded border-white/10 bg-[#030014] text-[#9382ff] focus:ring-[#9382ff]"
+            checked={formData.showQuiz}
+            onChange={(e) => setFormData({ ...formData, showQuiz: e.target.checked })}
+          />
+          <div>
+            <label htmlFor="showQuiz" className="block text-sm font-medium text-[#f4f0ff] cursor-pointer">
+              Enable Quiz Arena
+            </label>
+            <p className="text-xs text-[#a8a6b7] mt-0.5">
+              Check this to allow hosting live sessions, lobby quizzes, and question banks for this organization.
+            </p>
           </div>
         </div>
 

@@ -6,10 +6,80 @@ import { generateAccessCode } from "@/lib/quiz-utils";
 import { revalidatePath } from "next/cache";
 import type { ActionResponse, QuizSessionWithDetails } from "@/types";
 import { sendSessionLiveEmails, sendSessionResultEmails } from "@/lib/email";
+import { getCurrentUser } from "@/lib/auth";
+
+async function getOrgIdForCurrentUser(): Promise<string> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const member = await prisma.organizationMember.findFirst({
+    where: { userId: user.id },
+  });
+
+  let orgId = member?.organizationId;
+
+  if (!orgId && (user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com")) {
+    const firstOrg = await prisma.organization.findFirst();
+    if (firstOrg) orgId = firstOrg.id;
+  }
+
+  if (!orgId) {
+    throw new Error("No organization found for user");
+  }
+
+  const settings = await prisma.orgSettings.findUnique({
+    where: { organizationId: orgId },
+  });
+
+  if (!settings || !settings.showQuiz) {
+    throw new Error("Quiz Arena is not enabled for your organization.");
+  }
+
+  return orgId;
+}
+
+async function verifySessionAccess(sessionId: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const member = await prisma.organizationMember.findFirst({
+    where: { userId: user.id },
+  });
+
+  const session = await prisma.quizSession.findUnique({
+    where: { id: sessionId },
+    include: { quiz: true },
+  });
+
+  if (!session) throw new Error("Session not found");
+
+  const isSuperAdmin = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
+  if (!isSuperAdmin && (!member || member.organizationId !== session.quiz.organizationId)) {
+    throw new Error("Unauthorized");
+  }
+
+  const settings = await prisma.orgSettings.findUnique({
+    where: { organizationId: session.quiz.organizationId },
+  });
+
+  if (!settings || !settings.showQuiz) {
+    throw new Error("Quiz Arena is not enabled for this organization.");
+  }
+}
+
+async function verifyRoundAccess(roundId: string): Promise<void> {
+  const round = await prisma.quizRound.findUnique({
+    where: { id: roundId },
+  });
+  if (!round) throw new Error("Round not found");
+  await verifySessionAccess(round.sessionId);
+}
 
 export async function getSessions(): Promise<QuizSessionWithDetails[]> {
   try {
+    const orgId = await getOrgIdForCurrentUser();
     return await prisma.quizSession.findMany({
+      where: { quiz: { organizationId: orgId } },
       orderBy: { createdAt: "desc" },
       include: {
         quiz: true,
@@ -27,7 +97,7 @@ export async function getSessions(): Promise<QuizSessionWithDetails[]> {
 export async function getSessionById(id: string): Promise<any | null> {
   try {
     const isCode = id.length <= 12 && !id.includes("-");
-    return await prisma.quizSession.findUnique({
+    const session = await prisma.quizSession.findUnique({
       where: isCode ? { accessCode: id.toUpperCase() } : { id },
       include: {
         quiz: {
@@ -68,6 +138,18 @@ export async function getSessionById(id: string): Promise<any | null> {
         },
       },
     });
+
+    if (!session) return null;
+
+    const settings = await prisma.orgSettings.findUnique({
+      where: { organizationId: session.quiz.organizationId },
+    });
+
+    if (!settings || !settings.showQuiz) {
+      return null;
+    }
+
+    return session;
   } catch (error) {
     console.error(`Failed to get session ${id}:`, error);
     return null;
@@ -96,6 +178,13 @@ export async function createSession(data: Record<string, any>): Promise<ActionRe
       });
     }
 
+    const user = await getCurrentUser();
+    if (!user) throw new Error("Unauthorized");
+
+    const member = await prisma.organizationMember.findFirst({
+      where: { userId: user.id },
+    });
+
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
       include: {
@@ -108,6 +197,19 @@ export async function createSession(data: Record<string, any>): Promise<ActionRe
 
     if (!quiz) {
       return { success: false, error: "Quiz not found" };
+    }
+
+    const isSuperAdmin = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
+    if (!isSuperAdmin && (!member || member.organizationId !== quiz.organizationId)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const settings = await prisma.orgSettings.findUnique({
+      where: { organizationId: quiz.organizationId },
+    });
+
+    if (!settings || !settings.showQuiz) {
+      return { success: false, error: "Quiz Arena is not enabled for your organization." };
     }
 
     if (quiz.status !== "PUBLISHED") {
@@ -227,6 +329,7 @@ export async function updateSessionStatus(
   status: "WAITING" | "ACTIVE" | "PAUSED" | "COMPLETED"
 ): Promise<ActionResponse> {
   try {
+    await verifySessionAccess(id);
     const updateData: Record<string, any> = { status };
     if (status === "ACTIVE") {
       updateData.startedAt = new Date();
@@ -265,6 +368,7 @@ export async function updateRoundStatus(
   status: "PENDING" | "ACTIVE" | "COMPLETED"
 ): Promise<ActionResponse> {
   try {
+    await verifyRoundAccess(roundId);
     const updateData: Record<string, any> = { status };
     if (status === "ACTIVE") {
       updateData.startedAt = new Date();
@@ -295,6 +399,7 @@ export async function updateRoundStatus(
 
 export async function deleteSession(id: string): Promise<ActionResponse> {
   try {
+    await verifySessionAccess(id);
     await prisma.quizSession.delete({
       where: { id },
     });

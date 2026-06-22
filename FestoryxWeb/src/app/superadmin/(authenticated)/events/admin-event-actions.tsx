@@ -5,10 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toggleEventPublish, toggleEventRegistration, deleteEvent } from "@/actions/event.actions";
 import { toast } from "sonner";
-import { Eye, EyeOff, Edit, Trash2, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, Edit, Trash2, ShieldAlert, Globe } from "lucide-react";
 
 interface AdminEventActionsProps {
   eventId: string;
+  eventSlug: string;
   isPublished: boolean;
   isRegistrationOpen: boolean;
   eventName: string;
@@ -17,6 +18,7 @@ interface AdminEventActionsProps {
 
 export function AdminEventActions({
   eventId,
+  eventSlug,
   isPublished,
   isRegistrationOpen,
   eventName,
@@ -83,7 +85,18 @@ export function AdminEventActions({
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 justify-end">
+      {/* View Event Link */}
+      <a
+        href={`/events/${eventSlug}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="rounded-lg p-2 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+        title="View Public Event Page"
+      >
+        <Globe className="h-4 w-4" />
+      </a>
+
       {/* Toggle Publish */}
       <button
         onClick={handleTogglePublish}
@@ -114,7 +127,7 @@ export function AdminEventActions({
 
       {/* Edit Link */}
       <Link
-        href={`/admin/events/${eventId}/edit`}
+        href={`/superadmin/events/${eventId}/edit`}
         className="rounded-lg p-2 bg-white/5 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
         title="Edit Event"
       >

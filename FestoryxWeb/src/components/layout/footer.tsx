@@ -65,11 +65,11 @@ export async function Footer() {
   const contactAddress = settings?.contactAddress;
 
   const socialLinksData = settings?.socialLinks as any;
-  const instagram = socialLinksData?.instagram || "";
-  const github = socialLinksData?.github || "";
-  const twitter = socialLinksData?.twitter || "";
-  const linkedin = socialLinksData?.linkedin || "";
-  const youtube = socialLinksData?.youtube || "";
+  const instagram = settings?.instagramUrl || socialLinksData?.instagram || "";
+  const github = settings?.githubUrl || socialLinksData?.github || "";
+  const twitter = settings?.twitterUrl || socialLinksData?.twitter || "";
+  const linkedin = settings?.linkedinUrl || socialLinksData?.linkedin || "";
+  const youtube = settings?.youtubeUrl || socialLinksData?.youtube || "";
 
   const socialLinks = [
     { href: instagram || "", icon: InstagramIcon, label: "Instagram" },

@@ -196,7 +196,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               General Settings
             </h3>
 
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-1">
               <div>
                 <label className="block text-sm font-medium text-gray-300">Site Name</label>
                 <input
@@ -209,63 +209,15 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   <p className="mt-1 text-xs text-rose-400">{errors.siteName.message}</p>
                 )}
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Event Title</label>
-                <input
-                  type="text"
-                  {...register("eventTitle")}
-                  className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder="Festoryx 2026"
-                />
-                {errors.eventTitle && (
-                  <p className="mt-1 text-xs text-rose-400">{errors.eventTitle.message}</p>
-                )}
-              </div>
             </div>
-
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Tagline</label>
-                <input
-                  type="text"
-                  {...register("tagline")}
-                  className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder="Innovate. Compete. Excel."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Countdown Date (IST)</label>
-                <div className="mt-2 flex gap-2">
-                  <input
-                    type="datetime-local"
-                    {...register("countdownDate")}
-                    className="flex-1 rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleResetCountdown}
-                    disabled={isResettingCountdown}
-                    title="Reset / Clear countdown"
-                    className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-400 transition-all hover:bg-rose-500/20 hover:border-rose-500/30 disabled:opacity-50"
-                  >
-                    {isResettingCountdown ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-                    Reset
-                  </button>
-                </div>
-                <p className="mt-1 text-xs text-gray-400">Countdown timer target date and time. Click Reset to clear it.</p>
-              </div>
-            </div>
-
 
             <div>
-              <label className="block text-sm font-medium text-gray-300">About Content (Markdown / HTML)</label>
+              <label className="block text-sm font-medium text-gray-300">Site Description (Markdown / HTML)</label>
               <textarea
                 rows={6}
                 {...register("aboutContent")}
                 className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="Introduce the Festoryx festival..."
+                placeholder="Introduce the Festoryx platform..."
               />
             </div>
           </div>
@@ -304,13 +256,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     />
                   </label>
                 </div>
-                {watchLogo && (
-                  <img
-                    src={watchLogo}
-                    alt="Logo preview"
-                    className="mt-3 rounded-lg border border-white/10 h-12 object-contain bg-black/40 p-1"
-                  />
-                )}
+                <img
+                  src={watchLogo || "/Logo.gif"}
+                  alt="Logo preview"
+                  className="mt-3 rounded-lg border border-white/10 h-12 object-contain bg-black/40 p-1"
+                />
               </div>
             </div>
 
@@ -340,13 +290,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     />
                   </label>
                 </div>
-                {watchHeaderLogo && (
-                  <img
-                    src={watchHeaderLogo}
-                    alt="Header logo preview"
-                    className="mt-3 rounded-lg border border-white/10 h-10 object-contain bg-black/40 p-1"
-                  />
-                )}
+                <img
+                  src={watchHeaderLogo || "/Logo.gif"}
+                  alt="Header logo preview"
+                  className="mt-3 rounded-lg border border-white/10 h-10 object-contain bg-black/40 p-1"
+                />
               </div>
 
               {/* Footer Logo */}
@@ -374,13 +322,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     />
                   </label>
                 </div>
-                {watchFooterLogo && (
-                  <img
-                    src={watchFooterLogo}
-                    alt="Footer logo preview"
-                    className="mt-3 rounded-lg border border-white/10 h-10 object-contain bg-black/40 p-1"
-                  />
-                )}
+                <img
+                  src={watchFooterLogo || "/Logo.gif"}
+                  alt="Footer logo preview"
+                  className="mt-3 rounded-lg border border-white/10 h-10 object-contain bg-black/40 p-1"
+                />
               </div>
 
               {/* Favicon Logo */}
@@ -408,13 +354,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     />
                   </label>
                 </div>
-                {watchFavicon && (
-                  <img
-                    src={watchFavicon}
-                    alt="Favicon preview"
-                    className="mt-3 rounded-lg border border-white/10 h-10 w-10 object-contain bg-black/40 p-1"
-                  />
-                )}
+                <img
+                  src={watchFavicon || "/Logo.gif"}
+                  alt="Favicon preview"
+                  className="mt-3 rounded-lg border border-white/10 h-10 w-10 object-contain bg-black/40 p-1"
+                />
               </div>
             </div>
           </div>

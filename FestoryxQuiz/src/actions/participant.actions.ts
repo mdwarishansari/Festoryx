@@ -27,6 +27,17 @@ export async function joinSessionAction(
       };
     }
 
+    const settings = await prisma.orgSettings.findUnique({
+      where: { organizationId: session.quiz.organizationId },
+    });
+
+    if (!settings || !settings.showQuiz) {
+      return {
+        success: false,
+        error: "Quiz Arena is not enabled for this organization.",
+      };
+    }
+
     // 2. Validate participant registration code (matches the cuid or registrationId field in Registration table)
     const registration = await prisma.registration.findFirst({
       where: {
@@ -41,6 +52,13 @@ export async function joinSessionAction(
       return {
         success: false,
         error: "Event registration ID not found. Please verify your registration confirmation.",
+      };
+    }
+
+    if (registration.organizationId !== session.quiz.organizationId) {
+      return {
+        success: false,
+        error: "This registration ID belongs to a different organization and cannot join this lobby.",
       };
     }
 

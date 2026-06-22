@@ -18,10 +18,21 @@ const dmSans = DM_Sans({
   weight: "500",
 });
 
+import { getSiteSettings } from "@/actions/settings.actions";
 import { LoadingScreen } from "@/components/shared/loading-screen";
 import { ServerWakeup } from "@/components/shared/server-wakeup";
 
 export async function generateMetadata(): Promise<Metadata> {
+  let favicon = "/Logo.gif";
+  try {
+    const settings = await getSiteSettings();
+    if (settings?.faviconUrl) {
+      favicon = settings.faviconUrl;
+    }
+  } catch (error) {
+    console.error("Error loading site settings for favicon:", error);
+  }
+
   return {
     title: "Festoryx - Multi-Tenant Event Management SaaS & Competition OS",
     description: "Festoryx is a multi-tenant event operating system and interactive competition suite.",
@@ -43,9 +54,9 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
     },
     icons: {
-      icon: "/Logo.gif",
-      shortcut: "/Logo.gif",
-      apple: "/Logo.gif",
+      icon: favicon,
+      shortcut: favicon,
+      apple: favicon,
     },
   };
 }
@@ -58,8 +69,29 @@ export default async function RootLayout({
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://festoryx-socket.onrender.com";
 
   return (
-    // @ts-ignore
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY} unsafe_disableDevelopmentModeConsoleWarning={true}>
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      appearance={{
+        variables: {
+          colorPrimary: "#9382ff",
+          colorBackground: "#060317",
+          colorInputBackground: "#030014",
+          colorInputText: "#f4f0ff",
+          colorText: "#f4f0ff",
+          colorTextSecondary: "#a8a6b7",
+          colorTextOnPrimaryBackground: "#ffffff",
+        },
+        elements: {
+          card: "border border-white/5 bg-[#060317]/90 backdrop-blur-md",
+          headerTitle: "text-white font-heading",
+          headerSubtitle: "text-gray-400",
+          socialButtonsIconButton: "border border-white/10 text-white bg-white/5 hover:bg-white/10",
+          formButtonPrimary: "bg-[#9382ff] hover:bg-[#816eff] text-white shadow-md active:scale-95 transition-all duration-200",
+          footerActionText: "text-gray-400",
+          footerActionLink: "text-[#9382ff] hover:text-[#816eff]",
+        }
+      }}
+    >
       <html
         lang="en"
         className={`${inter.variable} ${dmSans.variable} dark`}

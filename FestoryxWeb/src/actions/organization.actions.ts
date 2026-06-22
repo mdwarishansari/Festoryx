@@ -30,6 +30,7 @@ export async function createOrganization(data: {
   logoPublicId?: string;
   websiteUrl?: string;
   socialLinks?: any;
+  showQuiz?: boolean;
 }): Promise<Organization> {
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
@@ -87,6 +88,7 @@ export async function createOrganization(data: {
     await tx.orgSettings.create({
       data: {
         organizationId: org.id,
+        showQuiz: data.showQuiz === true,
       },
     });
 
@@ -390,7 +392,7 @@ export async function deleteOrganization(orgId: string): Promise<void> {
   revalidatePath("/admin/organizations");
 }
 
-async function cleanupCloudinaryAssets(orgId: string) {
+export async function cleanupCloudinaryAssets(orgId: string) {
   try {
     // 1. Get org logo
     const org = await prisma.organization.findUnique({

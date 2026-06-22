@@ -4,12 +4,37 @@ import { prisma } from "@/lib/prisma";
 import { questionSchema } from "@/schemas/question.schema";
 import { revalidatePath } from "next/cache";
 import type { ActionResponse } from "@/types";
+import { getCurrentUser } from "@/lib/auth";
+
+async function verifyQuizAccess(quizId: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const member = await prisma.organizationMember.findFirst({
+    where: { userId: user.id },
+  });
+  if (!member) throw new Error("Unauthorized");
+
+  const settings = await prisma.orgSettings.findUnique({
+    where: { organizationId: member.organizationId },
+  });
+
+  if (!settings || !settings.showQuiz) {
+    throw new Error("Quiz Arena is not enabled for your organization.");
+  }
+
+  const quiz = await prisma.quiz.findFirst({
+    where: { id: quizId, organizationId: member.organizationId },
+  });
+  if (!quiz) throw new Error("Quiz not found or unauthorized");
+}
 
 export async function createQuestion(
   quizId: string,
   data: Record<string, any>
 ): Promise<ActionResponse<string>> {
   try {
+    await verifyQuizAccess(quizId);
     const parsed = questionSchema.safeParse(data);
     if (!parsed.success) {
       return { success: false, error: parsed.error.issues[0].message };
@@ -75,6 +100,8 @@ export async function updateQuestion(
       return { success: false, error: "Question not found" };
     }
 
+    await verifyQuizAccess(question.quizId);
+
     await prisma.$transaction(async (tx) => {
       await tx.quizQuestion.update({
         where: { id: questionId },
@@ -126,6 +153,8 @@ export async function deleteQuestion(questionId: string): Promise<ActionResponse
       return { success: false, error: "Question not found" };
     }
 
+    await verifyQuizAccess(question.quizId);
+
     await prisma.quizQuestion.delete({
       where: { id: questionId },
     });
@@ -155,6 +184,7 @@ export async function importQuestions(
   questionsData: any[]
 ): Promise<ActionResponse<{ count: number }>> {
   try {
+    await verifyQuizAccess(quizId);
     if (!Array.isArray(questionsData)) {
       return { success: false, error: "Invalid JSON format. Expected an array of questions." };
     }
@@ -278,6 +308,12 @@ export async function getFilteredQuestions(filters: {
   questionSet?: string;
 }) {
   try {
+    if (filters.quizId) {
+      await verifyQuizAccess(filters.quizId);
+    } else {
+      return { success: false, error: "Quiz ID filter is required" };
+    }
+
     const where: any = {};
     if (filters.quizId) where.quizId = filters.quizId;
     if (filters.type) where.type = filters.type;

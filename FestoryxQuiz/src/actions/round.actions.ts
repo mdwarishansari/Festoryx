@@ -3,9 +3,43 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { ActionResponse } from "@/types";
+import { getCurrentUser } from "@/lib/auth";
+
+async function verifyQuizAccess(quizId: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const member = await prisma.organizationMember.findFirst({
+    where: { userId: user.id },
+  });
+  if (!member) throw new Error("Unauthorized");
+
+  const settings = await prisma.orgSettings.findUnique({
+    where: { organizationId: member.organizationId },
+  });
+
+  if (!settings || !settings.showQuiz) {
+    throw new Error("Quiz Arena is not enabled for your organization.");
+  }
+
+  const quiz = await prisma.quiz.findFirst({
+    where: { id: quizId, organizationId: member.organizationId },
+  });
+  if (!quiz) throw new Error("Quiz not found or unauthorized");
+}
+
+async function verifyTemplateRoundAccess(roundId: string): Promise<string> {
+  const round = await prisma.quizTemplateRound.findUnique({
+    where: { id: roundId },
+  });
+  if (!round) throw new Error("Template round not found");
+  await verifyQuizAccess(round.quizId);
+  return round.quizId;
+}
 
 export async function getTemplateRounds(quizId: string): Promise<any[]> {
   try {
+    await verifyQuizAccess(quizId);
     return await prisma.quizTemplateRound.findMany({
       where: { quizId },
       orderBy: { roundNumber: "asc" },
@@ -28,6 +62,7 @@ export async function createTemplateRound(
   }
 ): Promise<ActionResponse<string>> {
   try {
+    await verifyQuizAccess(quizId);
     const round = await prisma.quizTemplateRound.create({
       data: {
         quizId,
@@ -60,6 +95,7 @@ export async function updateTemplateRound(
   }
 ): Promise<ActionResponse> {
   try {
+    const quizId = await verifyTemplateRoundAccess(roundId);
     const round = await prisma.quizTemplateRound.update({
       where: { id: roundId },
       data: {
@@ -82,6 +118,7 @@ export async function updateTemplateRound(
 
 export async function deleteTemplateRound(roundId: string): Promise<ActionResponse> {
   try {
+    const quizId = await verifyTemplateRoundAccess(roundId);
     const round = await prisma.quizTemplateRound.findUnique({
       where: { id: roundId },
       select: { quizId: true },

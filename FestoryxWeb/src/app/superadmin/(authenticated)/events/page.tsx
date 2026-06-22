@@ -116,6 +116,7 @@ export default async function AdminEventsListPage({ searchParams }: PageProps) {
                       <td className="px-6 py-4 text-right">
                         <AdminEventActions
                           eventId={event.id}
+                          eventSlug={event.slug}
                           isPublished={event.isPublished}
                           isRegistrationOpen={event.isRegistrationOpen}
                           eventName={event.name}

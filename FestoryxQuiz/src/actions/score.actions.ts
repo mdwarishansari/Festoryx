@@ -3,6 +3,36 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import type { ActionResponse } from "@/types";
+import { getCurrentUser } from "@/lib/auth";
+
+async function verifySessionAccess(sessionId: string): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const member = await prisma.organizationMember.findFirst({
+    where: { userId: user.id },
+  });
+
+  const session = await prisma.quizSession.findUnique({
+    where: { id: sessionId },
+    include: { quiz: true },
+  });
+
+  if (!session) throw new Error("Session not found");
+
+  const isSuperAdmin = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
+  if (!isSuperAdmin && (!member || member.organizationId !== session.quiz.organizationId)) {
+    throw new Error("Unauthorized");
+  }
+
+  const settings = await prisma.orgSettings.findUnique({
+    where: { organizationId: session.quiz.organizationId },
+  });
+
+  if (!settings || !settings.showQuiz) {
+    throw new Error("Quiz Arena is not enabled for this organization.");
+  }
+}
 
 export async function adjustParticipantScore(
   sessionId: string,
@@ -11,6 +41,7 @@ export async function adjustParticipantScore(
   note?: string
 ): Promise<ActionResponse> {
   try {
+    await verifySessionAccess(sessionId);
     await prisma.$transaction(async (tx) => {
       // Log manual correction record
       await tx.quizScore.create({

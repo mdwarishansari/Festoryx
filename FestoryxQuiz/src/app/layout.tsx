@@ -36,8 +36,29 @@ export default async function RootLayout({
   const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://festoryx-socket.onrender.com";
 
   return (
-    // @ts-ignore
-    <ClerkProvider publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY} unsafe_disableDevelopmentModeConsoleWarning={true}>
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      appearance={{
+        variables: {
+          colorPrimary: "#9382ff",
+          colorBackground: "#060317",
+          colorInputBackground: "#030014",
+          colorInputText: "#f4f0ff",
+          colorText: "#f4f0ff",
+          colorTextSecondary: "#a8a6b7",
+          colorTextOnPrimaryBackground: "#ffffff",
+        },
+        elements: {
+          card: "border border-white/5 bg-[#060317]/90 backdrop-blur-md",
+          headerTitle: "text-white font-heading",
+          headerSubtitle: "text-gray-400",
+          socialButtonsIconButton: "border border-white/10 text-white bg-white/5 hover:bg-white/10",
+          formButtonPrimary: "bg-[#9382ff] hover:bg-[#816eff] text-white shadow-md active:scale-95 transition-all duration-200",
+          footerActionText: "text-gray-400",
+          footerActionLink: "text-[#9382ff] hover:text-[#816eff]",
+        }
+      }}
+    >
       <html
         lang="en"
         className={`${inter.variable} ${spaceGrotesk.variable} dark`}

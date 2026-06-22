@@ -11,7 +11,6 @@ import { CosmicBackground } from "@/components/ui/cosmic-background";
 import type { Metadata } from "next";
 import { SearchBar } from "@/components/events/search-bar";
 import { FilterPanel } from "@/components/events/filter-panel";
-import { DeepSearchPanel } from "@/components/events/deep-search-panel";
 
 export const metadata: Metadata = {
   title: "Tech Events & Hackathons List | Festoryx Competitions",
@@ -34,7 +33,12 @@ interface PageProps {
 function simpleSearchFilter(event: any, query: string): boolean {
   if (!query) return true;
   const q = query.toLowerCase().trim();
-  return event.name.toLowerCase().includes(q) || (event.shortDescription || "").toLowerCase().includes(q);
+  return (
+    event.name.toLowerCase().includes(q) ||
+    (event.shortDescription || "").toLowerCase().includes(q) ||
+    (event.description || "").toLowerCase().includes(q) ||
+    (event.organization?.name || "").toLowerCase().includes(q)
+  );
 }
 
 function advancedSearchFilter(event: any, query: string): boolean {
@@ -146,7 +150,6 @@ export default async function EventsPage({ searchParams }: PageProps) {
           <div className="mt-8 space-y-6">
             <SearchBar />
             <FilterPanel activeOrgs={activeOrgs} />
-            <DeepSearchPanel />
           </div>
 
           {/* Grid list */}
