@@ -91,11 +91,6 @@ export function SocketStatusIndicator({ isAdmin = false }: SocketStatusIndicator
         )}
       </span>
 
-      {isAdmin && cleanedUrl && (
-        <span className="text-gray-500 text-[10px] border-l border-white/10 pl-2 font-mono hidden sm:inline" title={socketUrl}>
-          {cleanedUrl}
-        </span>
-      )}
     </div>
   );
 }

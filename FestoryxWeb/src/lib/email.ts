@@ -28,7 +28,6 @@ function getTransporter(): nodemailer.Transporter {
   return cachedTransporter;
 }
 
-// ─── Branding Config ──────────────────────────────────────────────────────────
 export interface EmailBranding {
   logoUrl: string;
   siteName: string;
@@ -37,9 +36,9 @@ export interface EmailBranding {
   youtubeUrl?: string;
 }
 
-export async function getEmailBranding(organizationId?: string): Promise<EmailBranding> {
+export async function getEmailBranding(organizationId?: string, isPlatformOnly: boolean = false): Promise<EmailBranding> {
   try {
-    if (organizationId) {
+    if (!isPlatformOnly && organizationId) {
       const org = await prisma.organization.findUnique({
         where: { id: organizationId },
         include: { settings: true },
@@ -57,36 +56,111 @@ export async function getEmailBranding(organizationId?: string): Promise<EmailBr
       }
     }
 
-    const firstOrg = await prisma.organization.findFirst({
-      include: { settings: true }
+    // Platform settings fallback
+    let siteSettings = await prisma.siteSettings.findUnique({
+      where: { id: "global" },
     });
-    if (firstOrg) {
-      const orgSettings = firstOrg.settings;
-      const socialLinks = orgSettings?.socialLinks as any;
+    if (!siteSettings) {
       return {
-        logoUrl: firstOrg.logoUrl || "https://festoryx.vercel.app/Logo.gif",
-        siteName: firstOrg.name,
-        contactEmail: orgSettings?.contactEmail || firstOrg.email,
-        footerText: `© ${new Date().getFullYear()} ${firstOrg.name}. All rights reserved.`,
-        youtubeUrl: socialLinks?.youtube || "https://www.youtube.com/@Festoryx",
+        logoUrl: "https://festoryx.vercel.app/Logo.gif",
+        siteName: "Festoryx",
+        contactEmail: "warishprojects@gmail.com",
+        footerText: `© ${new Date().getFullYear()} Festoryx. All rights reserved.`,
+        youtubeUrl: "https://www.youtube.com/@Festoryx",
       };
     }
 
     return {
-      logoUrl: "https://festoryx.vercel.app/Logo.gif",
-      siteName: "Festoryx",
-      contactEmail: process.env.SMTP_EMAIL || "support@festoryx.com",
-      footerText: `© ${new Date().getFullYear()} Festoryx. All rights reserved.`,
-      youtubeUrl: "https://www.youtube.com/@Festoryx",
+      logoUrl: siteSettings.logoUrl || "https://festoryx.vercel.app/Logo.gif",
+      siteName: siteSettings.siteName || "Festoryx",
+      contactEmail: siteSettings.contactEmail || "warishprojects@gmail.com",
+      footerText: siteSettings.footerText || `© ${new Date().getFullYear()} Festoryx. All rights reserved.`,
+      youtubeUrl: siteSettings.youtubeUrl || "https://www.youtube.com/@Festoryx",
     };
   } catch {
     return {
       logoUrl: "https://festoryx.vercel.app/Logo.gif",
       siteName: "Festoryx",
-      contactEmail: process.env.SMTP_EMAIL || "support@festoryx.com",
+      contactEmail: "warishprojects@gmail.com",
       footerText: "© 2026 Festoryx. All rights reserved.",
       youtubeUrl: "https://www.youtube.com/@Festoryx",
     };
+  }
+}
+
+export async function getOrganizerCardHtml(organizationId?: string): Promise<string> {
+  if (!organizationId) return "";
+  try {
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      include: { settings: true },
+    });
+    if (!org) return "";
+
+    const settings = org.settings;
+    const socialLinks = settings?.socialLinks as any;
+    const websiteUrl = org.websiteUrl || "";
+    const youtubeUrl = socialLinks?.youtube || "";
+    const contactPhone = settings?.contactPhone || org.phone || "";
+    const isWhatsapp = socialLinks?.contactPhoneIsWhatsapp || false;
+
+    let upiHtml = "";
+    if (settings?.paymentUpiId) {
+      upiHtml = `
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
+          <p style="color:#94a3b8;font-size:12px;margin:0 0 4px;text-transform:uppercase;letter-spacing:1px;">Organizer UPI Payment ID</p>
+          <p style="color:#e0e7ff;font-size:15px;font-weight:700;margin:0;font-family:monospace;">${settings.paymentUpiId}</p>
+          ${settings.paymentInstructions ? `<p style="color:#64748b;font-size:11px;margin:4px 0 0;line-height:1.4;">${settings.paymentInstructions}</p>` : ""}
+        </div>
+      `;
+    }
+
+    let linksHtml = "";
+    const links = [];
+    if (websiteUrl) links.push(`<a href="${websiteUrl}" target="_blank" style="color:#818cf8;text-decoration:none;font-weight:600;margin-right:12px;">Website</a>`);
+    if (youtubeUrl) links.push(`<a href="${youtubeUrl}" target="_blank" style="color:#ef4444;text-decoration:none;font-weight:600;margin-right:12px;">YouTube</a>`);
+    if (contactPhone) {
+      if (isWhatsapp) {
+        links.push(`<a href="https://wa.me/${contactPhone.replace(/\D/g, '')}" target="_blank" style="color:#10b981;text-decoration:none;font-weight:600;margin-right:12px;">WhatsApp</a>`);
+      } else {
+        links.push(`<a href="tel:${contactPhone}" style="color:#3b82f6;text-decoration:none;font-weight:600;margin-right:12px;">Call</a>`);
+      }
+    }
+
+    if (links.length > 0) {
+      linksHtml = `
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08);">
+          <p style="color:#94a3b8;font-size:12px;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">Connect with Organizer</p>
+          <div style="font-size:13px;">${links.join(" &nbsp;•&nbsp; ")}</div>
+        </div>
+      `;
+    }
+
+    return `
+      <!-- Organizer Highlighted Card -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#1e1b4b;border:1.5px solid rgba(129,140,248,0.3);border-radius:16px;margin:28px 0;width:100%;text-align:left;">
+        <tr>
+          <td style="padding:24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="vertical-align:top;width:48px;">
+                  <img src="${org.logoUrl || "https://festoryx.vercel.app/Logo.gif"}" alt="${org.name}" width="40" height="40" style="border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,0.15);" />
+                </td>
+                <td style="vertical-align:top;padding-left:14px;text-align:left;">
+                  <h4 style="color:#ffffff;font-size:16px;font-weight:700;margin:0;">Organized by ${org.name}</h4>
+                  <p style="color:#a5b4fc;font-size:12px;margin:2px 0 0;">Official event host partner</p>
+                </td>
+              </tr>
+            </table>
+            ${upiHtml}
+            ${linksHtml}
+          </td>
+        </tr>
+      </table>
+    `;
+  } catch (error) {
+    console.error("Error generating organizer card HTML:", error);
+    return "";
   }
 }
 
@@ -94,7 +168,8 @@ export async function getEmailBranding(organizationId?: string): Promise<EmailBr
 function wrapEmailTemplate(
   contentHtml: string,
   accentColor: string,
-  branding: EmailBranding
+  branding: EmailBranding,
+  organizerCardHtml: string = ""
 ): string {
   const gradientMap: Record<string, string> = {
     "#4F46E5": "linear-gradient(135deg,#4F46E5,#7C3AED)",
@@ -134,8 +209,9 @@ function wrapEmailTemplate(
 
           <!-- Body -->
           <tr>
-            <td style="background:#13131f;border-left:1px solid rgba(255,255,255,0.08);border-right:1px solid rgba(255,255,255,0.08);padding:40px;">
+            <td style="background:#13131f;border-left:1px solid rgba(255,255,255,0.08);border-right:1px solid rgba(255,255,255,0.08);padding:40px;text-align:left;">
               ${contentHtml}
+              ${organizerCardHtml}
             </td>
           </tr>
 
@@ -159,9 +235,11 @@ function wrapEmailTemplate(
                 This is an automated message. Please do not reply directly to this email.
               </p>
               ${
-                branding.logoUrl
-                  ? `<img src="${branding.logoUrl}" alt="${branding.siteName}" width="32" height="32" style="border-radius:8px;margin-top:16px;opacity:0.5;" />`
-                  : ""
+                organizerCardHtml
+                  ? `<p style="color:#374151;font-size:9px;margin:16px 0 0;border-top:1px solid rgba(255,255,255,0.05);padding-top:12px;">
+                       Powered by <strong>Festoryx</strong> - The ultimate techfest and quiz arena platform.
+                     </p>`
+                  : `<img src="${branding.logoUrl}" alt="${branding.siteName}" width="32" height="32" style="border-radius:8px;margin-top:16px;opacity:0.5;" />`
               }
             </td>
           </tr>
@@ -173,7 +251,6 @@ function wrapEmailTemplate(
 </body>
 </html>`;
 }
-
 // ─── Core Send Function ────────────────────────────────────────────────────────
 interface SendEmailParams {
   to: string | string[];
@@ -219,6 +296,20 @@ export async function sendEmail({ to, subject, html }: SendEmailParams): Promise
   throw new Error(`[Email] All 3 send attempts failed. Last error: ${lastError?.message || lastError}`);
 }
 
+async function getOrgIdFromReg(registrationId?: string): Promise<string | undefined> {
+  if (!registrationId) return undefined;
+  try {
+    const reg = await prisma.registration.findUnique({
+      where: { registrationId },
+      select: { organizationId: true },
+    });
+    return reg?.organizationId;
+  } catch (error) {
+    console.error("Failed to query organizationId from registration:", error);
+    return undefined;
+  }
+}
+
 // ─── Registration Confirmation Email ─────────────────────────────────────────
 export async function getRegistrationConfirmationEmail(params: {
   participantName: string;
@@ -228,12 +319,14 @@ export async function getRegistrationConfirmationEmail(params: {
   eventDate?: string;
 }): Promise<{ subject: string; html: string }> {
   const { participantName, eventName, registrationId, paymentStatus, eventDate } = params;
-  const branding = await getEmailBranding();
+  const orgId = await getOrgIdFromReg(registrationId);
+  const branding = await getEmailBranding(orgId);
+  const organizerCardHtml = await getOrganizerCardHtml(orgId);
   const isPaid = paymentStatus === "APPROVED";
 
   const statusBg = isPaid ? "#064e3b" : "#78350f";
   const statusColor = isPaid ? "#6ee7b7" : "#fde68a";
-  const statusLabel = isPaid ? "✅ APPROVED" : "⏳ PENDING";
+  const statusLabel = isPaid ? "APPROVED" : "PENDING";
 
   const contentHtml = `
     <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
@@ -305,10 +398,9 @@ export async function getRegistrationConfirmationEmail(params: {
 
   return {
     subject: `Registration Confirmed – ${eventName} | ${branding.siteName}`,
-    html: wrapEmailTemplate(contentHtml, "#4F46E5", branding),
+    html: wrapEmailTemplate(contentHtml, "#4F46E5", branding, organizerCardHtml),
   };
 }
-
 // ─── Payment Approved Email ───────────────────────────────────────────────────
 export async function getPaymentApprovedEmail(params: {
   participantName: string;
@@ -316,7 +408,9 @@ export async function getPaymentApprovedEmail(params: {
   registrationId: string;
 }): Promise<{ subject: string; html: string }> {
   const { participantName, eventName, registrationId } = params;
-  const branding = await getEmailBranding();
+  const orgId = await getOrgIdFromReg(registrationId);
+  const branding = await getEmailBranding(orgId);
+  const organizerCardHtml = await getOrganizerCardHtml(orgId);
 
   const contentHtml = `
     <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
@@ -358,7 +452,7 @@ export async function getPaymentApprovedEmail(params: {
 
   return {
     subject: `Payment Approved – ${eventName} | ${branding.siteName}`,
-    html: wrapEmailTemplate(contentHtml, "#059669", branding),
+    html: wrapEmailTemplate(contentHtml, "#059669", branding, organizerCardHtml),
   };
 }
 
@@ -370,7 +464,9 @@ export async function getPaymentRejectedEmail(params: {
   reason?: string;
 }): Promise<{ subject: string; html: string }> {
   const { participantName, eventName, registrationId, reason } = params;
-  const branding = await getEmailBranding();
+  const orgId = await getOrgIdFromReg(registrationId);
+  const branding = await getEmailBranding(orgId);
+  const organizerCardHtml = await getOrganizerCardHtml(orgId);
 
   const contentHtml = `
     <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
@@ -423,11 +519,9 @@ export async function getPaymentRejectedEmail(params: {
 
   return {
     subject: `Payment Issue – ${eventName} | ${branding.siteName}`,
-    html: wrapEmailTemplate(contentHtml, "#dc2626", branding),
+    html: wrapEmailTemplate(contentHtml, "#dc2626", branding, organizerCardHtml),
   };
-}
-
-// ─── Submission Confirmation Email ─────────────────────────────────────────
+}// ─── Submission Confirmation Email ─────────────────────────────────────────
 export async function getSubmissionConfirmationEmail(params: {
   participantName: string;
   eventName: string;
@@ -435,7 +529,9 @@ export async function getSubmissionConfirmationEmail(params: {
   projectLink: string;
 }): Promise<{ subject: string; html: string }> {
   const { participantName, eventName, registrationId, projectLink } = params;
-  const branding = await getEmailBranding();
+  const orgId = await getOrgIdFromReg(registrationId);
+  const branding = await getEmailBranding(orgId);
+  const organizerCardHtml = await getOrganizerCardHtml(orgId);
 
   const contentHtml = `
     <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
@@ -488,7 +584,7 @@ export async function getSubmissionConfirmationEmail(params: {
 
   return {
     subject: `Project Submitted: ${eventName} | ${branding.siteName}`,
-    html: wrapEmailTemplate(contentHtml, "#0891b2", branding),
+    html: wrapEmailTemplate(contentHtml, "#0891b2", branding, organizerCardHtml),
   };
 }
 
@@ -551,9 +647,11 @@ export function markdownToHtml(markdown: string): string {
 
 export async function getBroadcastEmailHtml(
   subject: string,
-  bodyMarkdownOrHtml: string
+  bodyMarkdownOrHtml: string,
+  organizationId?: string
 ): Promise<string> {
-  const branding = await getEmailBranding();
+  const branding = await getEmailBranding(organizationId);
+  const organizerCardHtml = await getOrganizerCardHtml(organizationId);
 
   // Detect if the body is raw HTML (starts with a tag) or Markdown
   const isHtml = /^\s*</.test(bodyMarkdownOrHtml);
@@ -566,7 +664,7 @@ export async function getBroadcastEmailHtml(
     </div>
   `;
 
-  return wrapEmailTemplate(contentHtml, "#4F46E5", branding);
+  return wrapEmailTemplate(contentHtml, "#4F46E5", branding, organizerCardHtml);
 }
 
 export async function getOrganizationApprovedEmail(params: {
@@ -575,7 +673,7 @@ export async function getOrganizationApprovedEmail(params: {
   dashboardUrl: string;
 }): Promise<{ subject: string; html: string }> {
   const { adminName, organizationName, dashboardUrl } = params;
-  const branding = await getEmailBranding();
+  const branding = await getEmailBranding(undefined, true);
 
   const contentHtml = `
     <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
@@ -617,7 +715,7 @@ export async function getOrganizationRejectedEmail(params: {
   reason: string;
 }): Promise<{ subject: string; html: string }> {
   const { adminName, organizationName, reason } = params;
-  const branding = await getEmailBranding();
+  const branding = await getEmailBranding(undefined, true);
 
   const contentHtml = `
     <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
@@ -661,7 +759,9 @@ export async function getEventReminderEmail(params: {
   venue?: string;
 }): Promise<{ subject: string; html: string }> {
   const { participantName, eventName, registrationId, eventDate, venue } = params;
-  const branding = await getEmailBranding();
+  const orgId = await getOrgIdFromReg(registrationId);
+  const branding = await getEmailBranding(orgId);
+  const organizerCardHtml = await getOrganizerCardHtml(orgId);
 
   const contentHtml = `
     <h2 style="color:#e0e7ff;font-size:24px;font-weight:700;margin:0 0 6px;">
@@ -705,6 +805,6 @@ export async function getEventReminderEmail(params: {
 
   return {
     subject: `Reminder: ${eventName} starts soon! | ${branding.siteName}`,
-    html: wrapEmailTemplate(contentHtml, "#4F46E5", branding),
+    html: wrapEmailTemplate(contentHtml, "#4F46E5", branding, organizerCardHtml),
   };
 }

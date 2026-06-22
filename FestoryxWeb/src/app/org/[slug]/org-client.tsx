@@ -167,7 +167,6 @@ export function OrgClient({
     { id: "overview", label: "Overview", icon: Building },
     { id: "events", label: "Events", icon: Calendar, hidden: !hasEvents },
     { id: "winners", label: "Winners", icon: Trophy, hidden: !hasWinners },
-    { id: "countdown", label: "Countdown", icon: Clock, hidden: !hasCountdown },
     { id: "links", label: "Links", icon: Globe, hidden: !hasLinks },
     { id: "quiz", label: "Quiz Arena", icon: Flame, hidden: !showQuiz },
     { id: "contact", label: "Contact", icon: Mail },
@@ -287,6 +286,46 @@ export function OrgClient({
               transition={{ duration: 0.2 }}
               className="space-y-8"
             >
+              {nextEvent && timeLeft && (
+                <div className="relative rounded-3xl border border-indigo-500/20 bg-indigo-950/10 backdrop-blur-md p-6 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="flex items-center gap-4 text-left">
+                    <div className="h-12 w-12 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/25 text-indigo-400 shrink-0">
+                      <Clock className="w-6 h-6 animate-pulse" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest">Next Challenge Starts In</p>
+                      <h4 className="text-white font-extrabold text-lg mt-0.5 max-w-md">{nextEvent.name}</h4>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Scheduled: {nextEvent.eventDate ? new Date(nextEvent.eventDate).toLocaleString("en-IN", { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : "TBD"}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="grid grid-cols-4 gap-2">
+                      {[
+                        { val: timeLeft.days, label: "Days" },
+                        { val: timeLeft.hours, label: "Hours" },
+                        { val: timeLeft.minutes, label: "Min" },
+                        { val: timeLeft.seconds, label: "Sec" }
+                      ].map((unit, i) => (
+                        <div key={i} className="flex flex-col items-center justify-center w-12 h-12 rounded-xl border border-white/5 bg-[#030014]/50 shadow-inner">
+                          <span className="text-sm font-extrabold font-mono text-white leading-none">{String(unit.val).padStart(2, "0")}</span>
+                          <span className="text-[8px] text-gray-500 uppercase tracking-widest mt-1 font-bold">{unit.label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Link
+                      href={`/org/${org.slug}/events/${nextEvent.slug}`}
+                      className="flex h-12 px-5 items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/25 transition-all"
+                    >
+                      <span>Register</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              )}
+
               <div className="grid gap-8 md:grid-cols-12">
                 <div className="md:col-span-8 space-y-6">
                   <div className="bg-[#0b071e]/40 border border-white/5 rounded-3xl p-8 space-y-4">
@@ -414,51 +453,7 @@ export function OrgClient({
             </motion.div>
           )}
 
-          {/* PANEL 4: COUNTDOWN */}
-          {activeTab === "countdown" && nextEvent && timeLeft && (
-            <motion.div
-              key="countdown-panel"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.2 }}
-              className="max-w-2xl mx-auto w-full"
-            >
-              <div className="relative rounded-3xl border border-indigo-500/25 bg-indigo-950/20 backdrop-blur-md p-8 overflow-hidden flex flex-col items-center text-center gap-6 shadow-2xl">
-                <div className="absolute top-0 right-0 w-44 h-44 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-                <div className="h-16 w-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400">
-                  <Clock className="w-8 h-8 animate-pulse" />
-                </div>
-                <div>
-                  <p className="text-xs text-indigo-300 font-bold uppercase tracking-widest">Next Challenge Starts In</p>
-                  <h4 className="text-white font-extrabold text-2xl mt-1.5 max-w-md">{nextEvent.name}</h4>
-                  <p className="text-xs text-gray-500 mt-1">Scheduled for {nextEvent.eventDate ? new Date(nextEvent.eventDate).toLocaleString() : "TBD"}</p>
-                </div>
 
-                <div className="grid grid-cols-4 gap-4 w-full max-w-sm mt-4">
-                  {[
-                    { val: timeLeft.days, label: "Days" },
-                    { val: timeLeft.hours, label: "Hours" },
-                    { val: timeLeft.minutes, label: "Min" },
-                    { val: timeLeft.seconds, label: "Sec" }
-                  ].map((unit, i) => (
-                    <div key={i} className="flex flex-col items-center justify-center py-4 rounded-2xl border border-white/5 bg-[#030014]/50 shadow-inner">
-                      <span className="text-2xl sm:text-3xl font-extrabold font-mono text-white leading-none">{String(unit.val).padStart(2, "0")}</span>
-                      <span className="text-[9px] text-gray-500 uppercase tracking-widest mt-2 font-bold">{unit.label}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <Link
-                  href={`/org/${org.slug}/events/${nextEvent.slug}`}
-                  className="mt-6 flex h-11 items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-6 shadow-lg shadow-indigo-600/25 transition-all"
-                >
-                  <span>Go to Registration</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
-            </motion.div>
-          )}
 
           {/* PANEL 6: LINKS */}
           {activeTab === "links" && (
@@ -645,8 +640,19 @@ export function OrgClient({
                       <a href={`mailto:${org.email}`} className="hover:text-white transition-colors">{org.email}</a>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Phone className="w-4 h-4 text-indigo-400 shrink-0" />
-                      <a href={`tel:${org.phone}`} className="hover:text-white transition-colors">{org.phone}</a>
+                      {org.settings?.socialLinks && (org.settings.socialLinks as any).contactPhoneIsWhatsapp === true ? (
+                        <MessageCircle className="w-4 h-4 text-[#25d366] shrink-0" />
+                      ) : (
+                        <Phone className="w-4 h-4 text-indigo-400 shrink-0" />
+                      )}
+                      <a 
+                        href={org.settings?.socialLinks && (org.settings.socialLinks as any).contactPhoneIsWhatsapp === true 
+                          ? `https://wa.me/${(org.settings?.contactPhone || org.phone).replace(/[^0-9]/g, "")}` 
+                          : `tel:${org.settings?.contactPhone || org.phone}`} 
+                        className="hover:text-white transition-colors"
+                      >
+                        {org.settings?.contactPhone || org.phone}
+                      </a>
                     </div>
                   </div>
                 </div>

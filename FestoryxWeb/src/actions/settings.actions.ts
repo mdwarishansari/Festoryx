@@ -186,6 +186,8 @@ export async function getOrgSettings(): Promise<any | null> {
       logoUrl: org.logoUrl || "/Logo.gif",
       paymentQrCodeUrl: orgSettings?.paymentQrCodeUrl || "",
       showQuiz: orgSettings?.showQuiz ?? false,
+      websiteUrl: org.websiteUrl || "",
+      contactPhoneIsWhatsapp: socialLinks?.contactPhoneIsWhatsapp === true,
       instagramUrl: socialLinks?.instagram || "",
       githubUrl: socialLinks?.github || "",
       twitterUrl: socialLinks?.twitter || "",
@@ -214,6 +216,8 @@ export async function updateOrgSettings(data: Record<string, unknown>): Promise<
       paymentInstructions,
       paymentQrCodeUrl,
       showQuiz,
+      websiteUrl,
+      contactPhoneIsWhatsapp,
       instagramUrl,
       githubUrl,
       twitterUrl,
@@ -227,6 +231,7 @@ export async function updateOrgSettings(data: Record<string, unknown>): Promise<
       twitter: twitterUrl || "",
       linkedin: linkedinUrl || "",
       youtube: youtubeUrl || "",
+      contactPhoneIsWhatsapp: contactPhoneIsWhatsapp === true || contactPhoneIsWhatsapp === "true",
     };
 
     await prisma.$transaction(async (tx) => {
@@ -236,6 +241,7 @@ export async function updateOrgSettings(data: Record<string, unknown>): Promise<
           name: siteName || "",
           logoUrl: logoUrl || null,
           description: aboutContent || "",
+          websiteUrl: websiteUrl || null,
         },
       });
 

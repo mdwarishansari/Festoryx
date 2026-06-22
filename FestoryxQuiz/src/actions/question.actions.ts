@@ -169,7 +169,33 @@ export async function deleteQuestion(questionId: string): Promise<ActionResponse
 
 export async function getEvents(): Promise<{ id: string; name: string }[]> {
   try {
+    const user = await getCurrentUser();
+    if (!user) return [];
+
+    const isSuper = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
+
+    if (isSuper) {
+      return await prisma.event.findMany({
+        select: { id: true, name: true },
+        orderBy: { name: "asc" },
+      });
+    }
+
+    const member = await prisma.organizationMember.findFirst({
+      where: { userId: user.id },
+    });
+    if (!member) return [];
+
     return await prisma.event.findMany({
+      where: {
+        organizationId: member.organizationId,
+        modules: {
+          some: {
+            module: "QUIZ_ARENA",
+            enabled: true,
+          },
+        },
+      },
       select: { id: true, name: true },
       orderBy: { name: "asc" },
     });

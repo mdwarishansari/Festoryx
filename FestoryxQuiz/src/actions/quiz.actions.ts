@@ -15,8 +15,9 @@ async function getOrgIdForCurrentUser(): Promise<string> {
   });
 
   let orgId = member?.organizationId;
+  const isSuper = user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com";
 
-  if (!orgId && (user.role === "SUPER_ADMIN" || user.email === "warishprojects@gmail.com")) {
+  if (!orgId && isSuper) {
     const firstOrg = await prisma.organization.findFirst();
     if (firstOrg) orgId = firstOrg.id;
   }
@@ -25,12 +26,14 @@ async function getOrgIdForCurrentUser(): Promise<string> {
     throw new Error("No organization found for user");
   }
 
-  const settings = await prisma.orgSettings.findUnique({
-    where: { organizationId: orgId },
-  });
+  if (!isSuper) {
+    const settings = await prisma.orgSettings.findUnique({
+      where: { organizationId: orgId },
+    });
 
-  if (!settings || !settings.showQuiz) {
-    throw new Error("Quiz Arena is not enabled for your organization.");
+    if (!settings || !settings.showQuiz) {
+      throw new Error("Quiz Arena is not enabled for your organization.");
+    }
   }
 
   return orgId;

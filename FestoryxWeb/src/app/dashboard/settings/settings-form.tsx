@@ -46,6 +46,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           logoUrl: settings.logoUrl || "",
           paymentQrCodeUrl: settings.paymentQrCodeUrl || "",
           showQuiz: settings.showQuiz ?? false,
+          websiteUrl: settings.websiteUrl || "",
+          contactPhoneIsWhatsapp: settings.contactPhoneIsWhatsapp ?? false,
           instagramUrl: settings.instagramUrl || "",
           githubUrl: settings.githubUrl || "",
           twitterUrl: settings.twitterUrl || "",
@@ -61,6 +63,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           logoUrl: "",
           paymentQrCodeUrl: "",
           showQuiz: false,
+          websiteUrl: "",
+          contactPhoneIsWhatsapp: false,
           instagramUrl: "",
           githubUrl: "",
           twitterUrl: "",
@@ -318,7 +322,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               Contact & Social Links
             </h3>
 
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-3">
               <div>
                 <label className="block text-sm font-medium text-gray-300">Contact Email</label>
                 <input
@@ -339,6 +343,24 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   {...register("contactPhone")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
                   placeholder="+91 98765 43210"
+                />
+                <label className="mt-2 flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    {...register("contactPhoneIsWhatsapp")}
+                    className="h-4 w-4 rounded border-white/10 bg-[#030014] text-[#9382ff] focus:ring-[#9382ff]"
+                  />
+                  <span className="text-xs text-gray-400">Is this a WhatsApp number?</span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300">Official Website URL</label>
+                <input
+                  type="text"
+                  {...register("websiteUrl")}
+                  className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
+                  placeholder="https://myorganization.com"
                 />
               </div>
             </div>

@@ -14,6 +14,7 @@ export default async function LandingPage() {
   const rawSessions = await prisma.quizSession.findMany({
     where: {
       status: { in: ["ACTIVE", "PAUSED", "WAITING", "COMPLETED"] },
+      isPublic: true,
     },
     include: {
       quiz: { select: { name: true, mode: true, settings: true } },

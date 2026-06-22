@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 interface AdminSidebarProps {
   adminName: string;
   adminEmail: string;
+  adminRole?: string;
 }
 
 const navItems = [
@@ -31,7 +32,12 @@ const navItems = [
   { label: "Back to Main Site", href: process.env.NEXT_PUBLIC_FESTORYX_URL || "https://festoryx.vercel.app", icon: Globe, isExternal: true },
 ];
 
-export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
+export function AdminSidebar({ adminName, adminEmail, adminRole }: AdminSidebarProps) {
+  const isSuper = adminRole === "SUPER_ADMIN" || adminEmail === "warishprojects@gmail.com";
+  const filteredNavItems = navItems.filter(item => {
+    if (item.label === "Platform Settings" && !isSuper) return false;
+    return true;
+  });
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { signOut } = useClerk();
@@ -70,7 +76,7 @@ export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const active = isActive(item.href);
           const classes = cn(
             "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",

@@ -17,6 +17,7 @@ export default async function AdminLayout({
       <AdminSidebar
         adminName={user.name}
         adminEmail={user.email}
+        adminRole={user.role}
       />
 
       {/* Main content */}

@@ -30,14 +30,27 @@ export function EventCard({ event }: EventCardProps) {
     >
       <div>
         {/* Card Banner Image */}
-        {event.bannerUrl && (
-          <div className="h-36 w-full overflow-hidden rounded-xl mb-4 border border-white/5 bg-black/40">
+        {event.bannerUrl ? (
+          <div className="h-36 w-full overflow-hidden rounded-xl mb-4 border border-white/5 bg-black/40 relative">
             <img
               src={event.bannerUrl}
               alt={event.name}
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
+            {(event.winner1Id || event.winner2Id || event.winner3Id) && (
+              <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded bg-[#b45309] border border-amber-500/30 px-2 py-0.5 text-[9px] font-black uppercase text-amber-200 shadow">
+                🏆 Winners Declared
+              </span>
+            )}
           </div>
+        ) : (
+          (event.winner1Id || event.winner2Id || event.winner3Id) && (
+            <div className="mb-3">
+              <span className="inline-flex items-center gap-1 rounded bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">
+                🏆 Winners Declared
+              </span>
+            </div>
+          )
         )}
 
         {/* Card Header Badge */}
@@ -65,11 +78,6 @@ export function EventCard({ event }: EventCardProps) {
           </span>
 
           <div className="flex items-center gap-2">
-            {(event.winner1Id || event.winner2Id || event.winner3Id) && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400">
-                🏆 Winners Declared
-              </span>
-            )}
             <span
               className={cn(
                 "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wider",

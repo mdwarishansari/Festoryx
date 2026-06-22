@@ -20,6 +20,8 @@ export const settingsSchema = z.object({
   statParticipants: z.string().optional().or(z.literal("")),
   statEvents: z.string().optional().or(z.literal("")),
   statColleges: z.string().optional().or(z.literal("")),
+  websiteUrl: z.string().optional().or(z.literal("")),
+  contactPhoneIsWhatsapp: z.boolean().optional(),
   instagramUrl: z.string().optional().or(z.literal("")),
   githubUrl: z.string().optional().or(z.literal("")),
   twitterUrl: z.string().optional().or(z.literal("")),

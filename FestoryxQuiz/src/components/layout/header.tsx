@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Menu, X, Trophy } from "lucide-react";
 import { getSettings } from "@/actions/settings.actions";
+import { useAuth, useClerk } from "@clerk/nextjs";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -13,6 +14,8 @@ const navLinks = [
 ];
 
 export function Header() {
+  const { isSignedIn } = useAuth();
+  const { signOut } = useClerk();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState("/Logo.gif");
@@ -104,7 +107,7 @@ export function Header() {
           {/* Right Section */}
           <div className="flex items-center gap-2 md:gap-4">
             {/* Desktop CTA */}
-            <div>
+            <div className="flex items-center gap-2">
               <Link
                 href="/join"
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:shadow-indigo-500/40 hover:brightness-110"
@@ -112,6 +115,14 @@ export function Header() {
                 <Trophy className="h-4 w-4" />
                 Join Lobby
               </Link>
+              {isSignedIn && (
+                <button
+                  onClick={() => signOut({ redirectUrl: "/" })}
+                  className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300"
+                >
+                  Sign Out
+                </button>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -190,7 +201,7 @@ export function Header() {
             </nav>
 
             {/* Mobile CTA */}
-            <div className="mt-8">
+            <div className="mt-8 space-y-3">
               <Link
                 href="/join"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -198,6 +209,17 @@ export function Header() {
               >
                 Join Lobby
               </Link>
+              {isSignedIn && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    signOut({ redirectUrl: "/" });
+                  }}
+                  className="block w-full rounded-lg border border-white/10 bg-white/5 px-5 py-3 text-center text-sm font-semibold text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-300"
+                >
+                  Sign Out
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -1,3 +1,4 @@
+
 <div align="center">
   <img src="FestoryxWeb/public/Logo.gif" alt="Festoryx Logo" width="200" />
   <h1>Festoryx</h1>

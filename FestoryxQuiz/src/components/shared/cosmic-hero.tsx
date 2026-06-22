@@ -189,7 +189,7 @@ export function CosmicHero() {
             <ArrowRight className="h-5 w-5" />
           </Link>
           <Link
-            href="/admin"
+            href="/sessions"
             className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-8 py-3.5 text-base font-semibold text-white transition-all hover:bg-white/10 hover:border-white/20"
           >
             Check Live Sessions

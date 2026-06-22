@@ -54,19 +54,23 @@ export async function sendBroadcastEmail(
   }
 
   // Fetch selected recipients
-  let registrations: { email: string; participantName: string }[] = [];
+  let registrations: { email: string; participantName: string; organizationId: string }[] = [];
+  let organizationId: string | undefined = undefined;
   try {
     registrations = await prisma.registration.findMany({
       where: { id: { in: recipientIds } },
-      select: { email: true, participantName: true },
+      select: { email: true, participantName: true, organizationId: true },
     });
+    if (registrations.length > 0) {
+      organizationId = registrations[0].organizationId;
+    }
   } catch (error) {
     console.error("Failed to fetch recipients for broadcast:", error);
     return { success: false, error: "Failed to fetch recipients." };
   }
 
   // Generate the styled HTML once
-  const html = await getBroadcastEmailHtml(subject, body);
+  const html = await getBroadcastEmailHtml(subject, body, organizationId);
 
   let sent = 0;
   let failed = 0;

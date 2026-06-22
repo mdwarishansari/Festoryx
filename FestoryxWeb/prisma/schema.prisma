@@ -442,6 +442,7 @@ model QuizSession {
   name                String
   accessCode          String                    @unique // 6-character unique lobby joining code
   status              SessionStatus             @default(WAITING)
+  isPublic            Boolean                   @default(false)
   startedAt           DateTime?
   endedAt             DateTime?
   currentRoundId      String?

@@ -23,6 +23,7 @@ export function SpawnSessionForm({ quizzes, autoQuizId }: SpawnSessionFormProps)
   const [isPending, setIsPending] = useState(false);
   const [name, setName] = useState(`Session - ${new Date().toLocaleDateString()}`);
   const [quizId, setQuizId] = useState(autoQuizId || "");
+  const [isPublic, setIsPublic] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +41,7 @@ export function SpawnSessionForm({ quizzes, autoQuizId }: SpawnSessionFormProps)
 
     setIsPending(true);
     try {
-      const res = await createSession({ name, quizId });
+      const res = await createSession({ name, quizId, isPublic });
       if (res.success && res.data) {
         toast.success("Session launched successfully!");
         router.push(`/admin/sessions/${res.data}`);
@@ -96,6 +97,22 @@ export function SpawnSessionForm({ quizzes, autoQuizId }: SpawnSessionFormProps)
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Public Toggle Checkbox */}
+      <div className="flex items-center gap-2.5 py-1">
+        <input
+          id="isPublic"
+          name="isPublic"
+          type="checkbox"
+          checked={isPublic}
+          onChange={(e) => setIsPublic(e.target.checked)}
+          disabled={isPending}
+          className="h-4 w-4 rounded border-white/10 bg-white/5 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+        />
+        <label htmlFor="isPublic" className="text-xs font-semibold text-gray-300 cursor-pointer select-none">
+          Make this session public on site catalog
+        </label>
       </div>
 
       <button
