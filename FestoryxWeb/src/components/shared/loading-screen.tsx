@@ -62,14 +62,25 @@ export function LoadingScreen() {
 
         {/* Animated Logo Container with entrance and exit scale animations */}
         <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={fadeOut ? { scale: 1.05, opacity: 0 } : { scale: 1, opacity: 1 }}
-          transition={{
-            duration: fadeOut ? 0.5 : 0.8,
-            ease: "easeOut",
-          }}
-          className="relative w-[160px] h-[160px] md:w-[200px] md:h-[200px] lg:w-[260px] lg:h-[260px]"
-        >
+  initial={{ scale: 0.9, opacity: 0 }}
+  animate={fadeOut ? { scale: 1.05, opacity: 0 } : { scale: 1, opacity: 1 }}
+  transition={{
+    duration: fadeOut ? 0.5 : 0.8,
+    ease: "easeOut",
+  }}
+  className="
+    relative
+    w-[160px] h-[160px]
+    md:w-[200px] md:h-[200px]
+    lg:w-[260px] lg:h-[260px]
+    rounded-full
+    overflow-hidden
+    border border-white/10
+    bg-black/30
+    backdrop-blur-sm
+    shadow-2xl shadow-violet-500/20
+  "
+>
           <Link href="/" className="relative block w-full h-full">
             <Image
               src="/Logo.gif"
