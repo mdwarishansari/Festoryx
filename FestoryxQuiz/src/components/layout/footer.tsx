@@ -76,13 +76,13 @@ export async function Footer() {
               <div className="h-10 w-10 overflow-hidden rounded-full border border-white/20 transition-all duration-200 group-hover:border-indigo-400 bg-black/20">
                 <img
                   src={footerLogo}
-                  alt="Festoryx Logo"
+                  alt={`${settings?.siteName || "Festoryx"} Logo`}
                   className="h-full w-full object-cover rounded-full"
                 />
               </div>
               <div className="flex flex-col">
                 <span className="gradient-text font-heading text-xl font-bold leading-none">
-                  Festoryx
+                  {settings?.siteName || "Festoryx"}
                 </span>
                 <span className="text-[9px] text-gray-500 font-semibold tracking-widest uppercase">
                   Quiz Arena

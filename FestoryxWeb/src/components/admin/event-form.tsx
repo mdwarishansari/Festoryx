@@ -619,18 +619,6 @@ export function EventForm({ initialData, onSubmit, title, description }: EventFo
                     <span className="text-xs text-gray-500">Feature this event in the "Arenas" section of the landing page.</span>
                   </div>
                 </label>
-
-                <label className="flex items-start gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    {...register("isQuizEvent")}
-                    className="mt-1 h-5 w-5 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500"
-                  />
-                  <div>
-                    <span className="block text-sm font-medium text-white">Is Quiz Event</span>
-                    <span className="text-xs text-gray-500">Make this competition visible and manageable within the Quiz Arena module.</span>
-                  </div>
-                </label>
               </div>
 
               <div className="grid gap-6 sm:grid-cols-2 pt-4 border-t border-white/5">

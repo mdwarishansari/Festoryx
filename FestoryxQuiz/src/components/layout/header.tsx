@@ -8,6 +8,7 @@ import { useAuth, useClerk } from "@clerk/nextjs";
 
 const navLinks = [
   { href: "/", label: "Home" },
+  { href: "/live-sessions", label: "Live Sessions" },
   { href: "/join", label: "Join Quiz" },
   { href: "/admin", label: "Admin Panel" },
   { href: process.env.NEXT_PUBLIC_FESTORYX_URL || "https://festoryx.vercel.app", label: "Main Website", isExternal: true },
@@ -19,6 +20,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState("/Logo.gif");
+  const [siteName, setSiteName] = useState("Festoryx");
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,6 +47,7 @@ export function Header() {
       try {
         const settings = await getSettings();
         if (settings?.logoUrl) setLogoUrl(settings.logoUrl);
+        if (settings?.siteName) setSiteName(settings.siteName);
       } catch (err) {
         console.error("Failed to load header branding settings:", err);
       }
@@ -67,13 +70,13 @@ export function Header() {
             <div className="h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-full border border-white/10 bg-black/20">
               <img
                 src={logoUrl}
-                alt="Festoryx Logo"
+                alt={`${siteName} Logo`}
                 className="h-full w-full object-cover rounded-full"
               />
             </div>
             <div className="flex flex-col">
               <span className="gradient-text font-heading text-xl md:text-2xl font-bold tracking-tight leading-none">
-                Festoryx
+                {siteName}
               </span>
               <span className="text-[10px] text-indigo-400 font-medium tracking-wider uppercase">
                 Quiz Arena

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useClerk } from "@clerk/nextjs";
+import { getSettings } from "@/actions/settings.actions";
 import {
   LayoutDashboard,
   BookOpen,
@@ -41,6 +42,21 @@ export function AdminSidebar({ adminName, adminEmail, adminRole }: AdminSidebarP
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const { signOut } = useClerk();
+  const [logoUrl, setLogoUrl] = useState("/Logo.gif");
+  const [siteName, setSiteName] = useState("Festoryx");
+
+  useEffect(() => {
+    async function loadBranding() {
+      try {
+        const settings = await getSettings();
+        if (settings?.logoUrl) setLogoUrl(settings.logoUrl);
+        if (settings?.siteName) setSiteName(settings.siteName);
+      } catch (err) {
+        console.error("Failed to load sidebar branding settings:", err);
+      }
+    }
+    loadBranding();
+  }, []);
 
   function isActive(href: string) {
     if (href === "/") return false;
@@ -55,14 +71,14 @@ export function AdminSidebar({ adminName, adminEmail, adminRole }: AdminSidebarP
         <Link href="/admin" className="flex items-center gap-2 group">
           <div className="h-10 w-10 overflow-hidden rounded-xl border border-white/20 transition-all duration-200 group-hover:border-indigo-400">
             <img
-              src="/Logo.gif"
-              alt="Festoryx Logo"
+              src={logoUrl}
+              alt={`${siteName} Logo`}
               className="h-full w-full object-cover rounded-xl"
             />
           </div>
           <div className="flex flex-col">
             <span className="bg-gradient-to-r from-white to-indigo-300 bg-clip-text text-md font-bold tracking-tight text-transparent transition-all duration-200 group-hover:text-indigo-400 leading-none">
-              Festoryx
+              {siteName}
             </span>
             <span className="text-[8px] text-indigo-400 font-semibold tracking-widest uppercase">
               Quiz Arena
@@ -70,7 +86,7 @@ export function AdminSidebar({ adminName, adminEmail, adminRole }: AdminSidebarP
           </div>
         </Link>
         <span className="ml-auto rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[9px] font-medium uppercase tracking-wider text-indigo-400">
-          Admin
+          {isSuper ? "Super Admin" : "Org Admin"}
         </span>
       </div>
 
@@ -140,7 +156,7 @@ export function AdminSidebar({ adminName, adminEmail, adminRole }: AdminSidebarP
           </div>
         </div>
         <button
-          onClick={() => signOut({ redirectUrl: process.env.NEXT_PUBLIC_FESTORYX_URL || "https://festoryx.vercel.app" })}
+          onClick={() => signOut({ redirectUrl: "/" })}
           className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-400 transition-all duration-200 hover:bg-red-500/10 hover:text-red-400"
         >
           <LogOut className="h-4 w-4" />

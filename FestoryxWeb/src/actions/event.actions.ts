@@ -48,12 +48,14 @@ export async function createEvent(data: EventFormData): Promise<ActionResponse<E
 
     // Extract modules and formFields from formData
     const { modules, formFields, ...eventData } = parsed.data;
+    const isQuizEvent = modules?.includes("QUIZ_ARENA") ?? false;
 
     const event = await prisma.$transaction(async (tx) => {
       // Create Event
       const evt = await tx.event.create({
         data: {
           ...eventData,
+          isQuizEvent,
           registrationFee: eventData.registrationFee ?? undefined,
           organizationId: orgId,
           visibility: (eventData.visibility as EventVisibility) || "PUBLIC",
@@ -168,12 +170,14 @@ export async function updateEvent(id: string, data: EventFormData): Promise<Acti
     }
 
     const { modules, formFields, ...eventData } = parsed.data;
+    const isQuizEvent = modules?.includes("QUIZ_ARENA") ?? false;
 
     const event = await prisma.$transaction(async (tx) => {
       const evt = await tx.event.update({
         where: { id },
         data: {
           ...eventData,
+          isQuizEvent,
           registrationFee: eventData.registrationFee ?? undefined,
           visibility: (eventData.visibility as EventVisibility) || "PUBLIC",
         },

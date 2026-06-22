@@ -184,11 +184,6 @@ export async function getEvents(): Promise<{ id: string; name: string }[]> {
     const isSuper = isSuperAdmin(user);
 
     const whereClause: any = {
-      organization: {
-        settings: {
-          showQuiz: true,
-        },
-      },
       OR: [
         { isQuizEvent: true },
         {
