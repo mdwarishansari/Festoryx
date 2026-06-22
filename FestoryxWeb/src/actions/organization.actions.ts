@@ -253,7 +253,7 @@ export async function approveOrganization(orgId: string): Promise<void> {
 
   const recipientEmail = ownerMember?.user.email || org.email;
   const adminName = ownerMember?.user.name || "Organizer";
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard`;
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://festoryx.vercel.app"}/dashboard`;
 
   try {
     const { subject, html } = await getOrganizationApprovedEmail({

@@ -85,6 +85,9 @@ export async function updateSiteSettings(data: Record<string, unknown>): Promise
       countdownDate,
     } = data as any;
 
+    const parsedCountdown = (countdownDate && typeof countdownDate === "string" && countdownDate.trim() !== "") ? new Date(countdownDate) : null;
+    const finalCountdown = (parsedCountdown && !isNaN(parsedCountdown.getTime())) ? parsedCountdown : null;
+
     await prisma.siteSettings.upsert({
       where: { id: "global" },
       update: {
@@ -105,7 +108,7 @@ export async function updateSiteSettings(data: Record<string, unknown>): Promise
         twitterUrl: twitterUrl || null,
         linkedinUrl: linkedinUrl || null,
         youtubeUrl: youtubeUrl || null,
-        countdownDate: countdownDate ? new Date(countdownDate) : null,
+        countdownDate: finalCountdown,
       },
       create: {
         id: "global",
@@ -126,7 +129,7 @@ export async function updateSiteSettings(data: Record<string, unknown>): Promise
         twitterUrl: twitterUrl || null,
         linkedinUrl: linkedinUrl || null,
         youtubeUrl: youtubeUrl || null,
-        countdownDate: countdownDate ? new Date(countdownDate) : null,
+        countdownDate: finalCountdown,
       },
     });
 

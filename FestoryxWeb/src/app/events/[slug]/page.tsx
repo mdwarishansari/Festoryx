@@ -334,7 +334,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400 text-sm">Registration Fee</span>
                     <span className="font-heading text-xl font-bold text-white">
-                      {fee === 0 ? "FREE" : `₹${fee}`}
+                      {fee === 0 ? "FREE" : event.feePerParticipant ? `₹${fee} / Participant` : `₹${fee}`}
                     </span>
                   </div>
 
@@ -432,7 +432,7 @@ export default async function EventDetailPage({ params, searchParams }: PageProp
                   </p>
                   <div className="flex flex-col gap-2">
                     <a
-                      href={`${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "http://localhost:3002"}/join`}
+                      href={`${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "https://festoryx-quiz.vercel.app"}/join`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex h-10 w-full items-center justify-center rounded-xl bg-indigo-600 text-xs font-semibold text-white shadow-lg hover:bg-indigo-500 transition-all text-center"

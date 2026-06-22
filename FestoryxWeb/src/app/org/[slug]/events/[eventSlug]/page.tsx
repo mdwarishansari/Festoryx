@@ -436,7 +436,7 @@ export default async function OrgEventDetailPage({ params, searchParams }: PageP
                   </p>
                   <div className="flex flex-col gap-2">
                     <a
-                      href={`${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "http://localhost:3002"}/join`}
+                      href={`${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "https://festoryx-quiz.vercel.app"}/join`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex h-10 w-full items-center justify-center rounded-xl bg-indigo-600 text-xs font-semibold text-white shadow-lg hover:bg-indigo-500 transition-all text-center"

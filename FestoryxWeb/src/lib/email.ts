@@ -1,11 +1,15 @@
 import nodemailer from "nodemailer";
 import { prisma } from "@/lib/prisma";
 
+let cachedTransporter: nodemailer.Transporter | null = null;
+
 function getTransporter(): nodemailer.Transporter {
+  if (cachedTransporter) return cachedTransporter;
+
   const port = Number(process.env.SMTP_PORT) || 587;
   const secure = port === 465;
 
-  return nodemailer.createTransport({
+  cachedTransporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || "smtp.gmail.com",
     port,
     secure,
@@ -16,7 +20,12 @@ function getTransporter(): nodemailer.Transporter {
     tls: {
       rejectUnauthorized: false,
     },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
   });
+
+  return cachedTransporter;
 }
 
 // ─── Branding Config ──────────────────────────────────────────────────────────
@@ -182,20 +191,32 @@ export async function sendEmail({ to, subject, html }: SendEmailParams): Promise
   }
 
   const recipients = Array.isArray(to) ? to.join(", ") : to;
+  const transporter = getTransporter();
 
-  try {
-    const transporter = getTransporter();
-    await transporter.sendMail({
-      from: `"${fromName}" <${fromEmail}>`,
-      to: recipients,
-      subject,
-      html,
-    });
-    console.log(`[Email] ✅ Sent "${subject}" → ${recipients}`);
-  } catch (error) {
-    console.error(`[Email] ❌ Failed to send "${subject}" to ${recipients}:`, error);
-    throw error;
+  let lastError: any = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      console.log(`[Email] Sending attempt ${attempt} for "${subject}" to ${recipients}...`);
+      await transporter.sendMail({
+        from: `"${fromName}" <${fromEmail}>`,
+        to: recipients,
+        subject,
+        html,
+      });
+      console.log(`[Email] ✅ Sent successfully on attempt ${attempt}: "${subject}" → ${recipients}`);
+      return;
+    } catch (error: any) {
+      lastError = error;
+      console.error(`[Email] Attempt ${attempt} failed for "${subject}":`, error.message || error);
+      if (attempt < 3) {
+        const delay = attempt * 2000;
+        console.log(`[Email] Retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
   }
+
+  throw new Error(`[Email] All 3 send attempts failed. Last error: ${lastError?.message || lastError}`);
 }
 
 // ─── Registration Confirmation Email ─────────────────────────────────────────

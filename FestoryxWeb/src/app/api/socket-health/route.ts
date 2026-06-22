@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://festoryx-socket.onrender.com";
   
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 2000);

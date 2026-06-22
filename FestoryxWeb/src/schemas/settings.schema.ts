@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 export const settingsSchema = z.object({
-  siteName: z.string().min(1, "Site name is required"),
-  eventTitle: z.string().min(1, "Event title is required"),
+  siteName: z.string().min(1, "Name is required"),
+  eventTitle: z.string().optional().or(z.literal("")),
+  showQuiz: z.boolean().optional(),
   tagline: z.string().optional().or(z.literal("")),
   aboutContent: z.string().optional().or(z.literal("")),
   contactEmail: z.string().email("Valid email required").optional().or(z.literal("")),

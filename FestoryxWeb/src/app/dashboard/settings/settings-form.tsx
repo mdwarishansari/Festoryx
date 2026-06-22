@@ -21,25 +21,10 @@ export function SettingsForm({ settings }: SettingsFormProps) {
   const [isPending, startTransition] = useTransition();
   const [uploads, setUploads] = useState<Record<string, boolean>>({});
 
-  const [isResettingCountdown, startResetCountdownTransition] = useTransition();
-
   const [deleteOtp, setDeleteOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
-
-  const handleResetCountdown = () => {
-    startResetCountdownTransition(async () => {
-      const res = await resetCountdownDate();
-      if (res.success) {
-        setValue("countdownDate", "");
-        toast.success("Countdown timer cleared.");
-        router.refresh();
-      } else {
-        toast.error(res.error || "Failed to reset countdown.");
-      }
-    });
-  };
 
 
 
@@ -54,20 +39,13 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     defaultValues: settings
       ? {
           siteName: settings.siteName || "",
-          eventTitle: settings.eventTitle || "",
-          tagline: settings.tagline || "",
           aboutContent: settings.aboutContent || "",
           contactEmail: settings.contactEmail || "",
           contactPhone: settings.contactPhone || "",
-          footerText: settings.footerText || "",
           paymentInstructions: settings.paymentInstructions || "",
           logoUrl: settings.logoUrl || "",
-          headerLogoUrl: settings.headerLogoUrl || "",
-          footerLogoUrl: settings.footerLogoUrl || "",
-          faviconUrl: settings.faviconUrl || "",
           paymentQrCodeUrl: settings.paymentQrCodeUrl || "",
-          contactAddress: settings.contactAddress || "",
-          countdownDate: formatToISTInputString(settings.countdownDate),
+          showQuiz: settings.showQuiz ?? false,
           instagramUrl: settings.instagramUrl || "",
           githubUrl: settings.githubUrl || "",
           twitterUrl: settings.twitterUrl || "",
@@ -75,21 +53,14 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           youtubeUrl: settings.youtubeUrl || "",
         }
       : {
-          siteName: "Festoryx",
-          eventTitle: "Festoryx 2026",
-          tagline: "",
+          siteName: "",
           aboutContent: "",
           contactEmail: "",
           contactPhone: "",
-          footerText: "",
           paymentInstructions: "",
           logoUrl: "",
-          headerLogoUrl: "",
-          footerLogoUrl: "",
-          faviconUrl: "",
           paymentQrCodeUrl: "",
-          contactAddress: "University Campus, Main Road",
-          countdownDate: "",
+          showQuiz: false,
           instagramUrl: "",
           githubUrl: "",
           twitterUrl: "",
@@ -100,9 +71,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
 
   const watchLogo = watch("logoUrl");
   const watchQrCode = watch("paymentQrCodeUrl");
-  const watchHeaderLogo = watch("headerLogoUrl");
-  const watchFooterLogo = watch("footerLogoUrl");
-  const watchFavicon = watch("faviconUrl");
 
   // File Upload Helper
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>, fieldName: keyof SettingsFormData, folder: string) {
@@ -169,7 +137,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     { id: "general", label: "General", icon: Info },
     { id: "branding", label: "Branding", icon: Image },
     { id: "payment", label: "Payment & QR", icon: CreditCard },
-    { id: "contact", label: "Contact & Footer", icon: Mail },
+    { id: "contact", label: "Contact & Socials", icon: Mail },
     { id: "danger", label: "Danger Zone", icon: XCircle },
   ];
 
@@ -201,80 +169,47 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         {activeTab === "general" && (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md space-y-6">
             <h3 className="font-heading text-lg font-semibold text-white border-b border-white/5 pb-2">
-              General Settings
+              Organization Settings
             </h3>
 
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-1">
               <div>
-                <label className="block text-sm font-medium text-gray-300">Site Name</label>
+                <label className="block text-sm font-medium text-gray-300">Organization Name</label>
                 <input
                   type="text"
                   {...register("siteName")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder="Festoryx Portal"
+                  placeholder="e.g. Science Club"
                 />
                 {errors.siteName && (
                   <p className="mt-1 text-xs text-rose-400">{errors.siteName.message}</p>
                 )}
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Event Title</label>
-                <input
-                  type="text"
-                  {...register("eventTitle")}
-                  className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder="Festoryx 2026"
-                />
-                {errors.eventTitle && (
-                  <p className="mt-1 text-xs text-rose-400">{errors.eventTitle.message}</p>
-                )}
-              </div>
             </div>
-
-            <div className="grid gap-6 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Tagline</label>
-                <input
-                  type="text"
-                  {...register("tagline")}
-                  className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  placeholder="Innovate. Compete. Excel."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Countdown Date (IST)</label>
-                <div className="mt-2 flex gap-2">
-                  <input
-                    type="datetime-local"
-                    {...register("countdownDate")}
-                    className="flex-1 rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleResetCountdown}
-                    disabled={isResettingCountdown}
-                    title="Reset / Clear countdown"
-                    className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-400 transition-all hover:bg-rose-500/20 hover:border-rose-500/30 disabled:opacity-50"
-                  >
-                    {isResettingCountdown ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
-                    Reset
-                  </button>
-                </div>
-                <p className="mt-1 text-xs text-gray-400">Countdown timer target date and time. Click Reset to clear it.</p>
-              </div>
-            </div>
-
 
             <div>
-              <label className="block text-sm font-medium text-gray-300">About Content (Markdown / HTML)</label>
+              <label className="block text-sm font-medium text-gray-300">Organization Description (Markdown / HTML)</label>
               <textarea
                 rows={6}
                 {...register("aboutContent")}
                 className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                placeholder="Introduce the Festoryx festival..."
+                placeholder="Introduce your organization..."
               />
+            </div>
+
+            <div className="flex items-center gap-3 border-t border-white/5 pt-4">
+              <input
+                id="showQuiz"
+                type="checkbox"
+                {...register("showQuiz")}
+                className="h-4 w-4 rounded border-white/10 bg-[#16213e] text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <div>
+                <label htmlFor="showQuiz" className="block text-sm font-medium text-gray-300 cursor-pointer select-none">
+                  Enable Quiz Arena
+                </label>
+                <p className="text-xs text-gray-400">If enabled, a Quiz Arena tab will appear on your public microsite.</p>
+              </div>
             </div>
           </div>
         )}
@@ -317,110 +252,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                     src={watchLogo}
                     alt="Logo preview"
                     className="mt-3 rounded-lg border border-white/10 h-12 object-contain bg-black/40 p-1"
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-6 sm:grid-cols-3">
-              {/* Header Logo */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Header Logo URL (Optional)</label>
-                <div className="mt-2 flex gap-3">
-                  <input
-                    type="text"
-                    {...register("headerLogoUrl")}
-                    className="flex-1 rounded-xl border border-white/10 bg-[#16213e] px-3 py-2.5 text-xs text-white focus:outline-none"
-                    placeholder="Header Logo URL"
-                  />
-                  <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/10 transition-all">
-                    {uploads.headerLogoUrl ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4" />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, "headerLogoUrl", `festoryx/organizations/${settings.slug || "default"}/logos`)}
-                      disabled={uploads.headerLogoUrl}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                {watchHeaderLogo && (
-                  <img
-                    src={watchHeaderLogo}
-                    alt="Header logo preview"
-                    className="mt-3 rounded-lg border border-white/10 h-10 object-contain bg-black/40 p-1"
-                  />
-                )}
-              </div>
-
-              {/* Footer Logo */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Footer Logo URL (Optional)</label>
-                <div className="mt-2 flex gap-3">
-                  <input
-                    type="text"
-                    {...register("footerLogoUrl")}
-                    className="flex-1 rounded-xl border border-white/10 bg-[#16213e] px-3 py-2.5 text-xs text-white focus:outline-none"
-                    placeholder="Footer Logo URL"
-                  />
-                  <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/10 transition-all">
-                    {uploads.footerLogoUrl ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4" />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, "footerLogoUrl", `festoryx/organizations/${settings.slug || "default"}/logos`)}
-                      disabled={uploads.footerLogoUrl}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                {watchFooterLogo && (
-                  <img
-                    src={watchFooterLogo}
-                    alt="Footer logo preview"
-                    className="mt-3 rounded-lg border border-white/10 h-10 object-contain bg-black/40 p-1"
-                  />
-                )}
-              </div>
-
-              {/* Favicon Logo */}
-              <div>
-                <label className="block text-sm font-medium text-gray-300">Favicon URL (Optional)</label>
-                <div className="mt-2 flex gap-3">
-                  <input
-                    type="text"
-                    {...register("faviconUrl")}
-                    className="flex-1 rounded-xl border border-white/10 bg-[#16213e] px-3 py-2.5 text-xs text-white focus:outline-none"
-                    placeholder="Favicon URL"
-                  />
-                  <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/10 transition-all">
-                    {uploads.faviconUrl ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Upload className="h-4 w-4" />
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleImageUpload(e, "faviconUrl", `festoryx/organizations/${settings.slug || "default"}/logos`)}
-                      disabled={uploads.faviconUrl}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-                {watchFavicon && (
-                  <img
-                    src={watchFavicon}
-                    alt="Favicon preview"
-                    className="mt-3 rounded-lg border border-white/10 h-10 w-10 object-contain bg-black/40 p-1"
                   />
                 )}
               </div>
@@ -480,11 +311,11 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           </div>
         )}
 
-        {/* CONTACT & FOOTER */}
+        {/* CONTACT & SOCIAL LINKS */}
         {activeTab === "contact" && (
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md space-y-6">
             <h3 className="font-heading text-lg font-semibold text-white border-b border-white/5 pb-2">
-              Contact & Footers
+              Contact & Social Links
             </h3>
 
             <div className="grid gap-6 sm:grid-cols-2">
@@ -494,7 +325,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   type="email"
                   {...register("contactEmail")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                  placeholder="contact@university.edu"
+                  placeholder="contact@organization.com"
                 />
                 {errors.contactEmail && (
                   <p className="mt-1 text-xs text-rose-400">{errors.contactEmail.message}</p>
@@ -512,16 +343,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300">Contact Address</label>
-              <input
-                type="text"
-                {...register("contactAddress")}
-                className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                placeholder="University Campus, Main Road"
-              />
-            </div>
-
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
               <div>
                 <label className="block text-sm font-medium text-gray-300">Instagram URL</label>
@@ -529,7 +350,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   type="text"
                   {...register("instagramUrl")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                  placeholder="https://instagram.com/festoryx"
+                  placeholder="https://instagram.com/..."
                 />
               </div>
               <div>
@@ -538,7 +359,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   type="text"
                   {...register("githubUrl")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                  placeholder="https://github.com/mdwarishansari/Festoryx"
+                  placeholder="https://github.com/..."
                 />
               </div>
               <div>
@@ -547,7 +368,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   type="text"
                   {...register("twitterUrl")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                  placeholder="https://twitter.com/festoryx"
+                  placeholder="https://twitter.com/..."
                 />
               </div>
               <div>
@@ -556,7 +377,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   type="text"
                   {...register("linkedinUrl")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                  placeholder="https://linkedin.com/company/festoryx"
+                  placeholder="https://linkedin.com/in/..."
                 />
               </div>
               <div>
@@ -565,19 +386,9 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   type="text"
                   {...register("youtubeUrl")}
                   className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                  placeholder="https://www.youtube.com/@Festoryx"
+                  placeholder="https://www.youtube.com/@..."
                 />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300">Footer text / Copyright</label>
-              <input
-                type="text"
-                {...register("footerText")}
-                className="mt-2 block w-full rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:outline-none"
-                placeholder="© 2026 Technical Festival. All Rights Reserved."
-              />
             </div>
           </div>
         )}

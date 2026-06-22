@@ -9,7 +9,7 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/join", label: "Join Quiz" },
   { href: "/admin", label: "Admin Panel" },
-  { href: process.env.NEXT_PUBLIC_Festoryx_URL || "http://localhost:3000", label: "Main Website", isExternal: true },
+  { href: process.env.NEXT_PUBLIC_FESTORYX_URL || "https://festoryx.vercel.app", label: "Main Website", isExternal: true },
 ];
 
 export function Header() {

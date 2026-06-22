@@ -10,7 +10,7 @@ export const getSocket = (): Socket => {
   if (!socket) {
     const socketUrl = (typeof window !== "undefined" && (window as any).__SOCKET_URL__)
       || process.env.NEXT_PUBLIC_SOCKET_URL
-      || "http://localhost:3001";
+      || "https://festoryx-socket.onrender.com";
     socket = io(socketUrl, {
       autoConnect: false,
       reconnection: true,

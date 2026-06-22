@@ -46,7 +46,7 @@ export default async function OrgProfilePage({ params }: OrgProfilePageProps) {
   const proto = headersList.get("x-forwarded-proto") || "https";
   const orgUrl = `${proto}://${host}/org/${slug}`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(orgUrl)}`;
-  const quizArenaUrl = process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "http://localhost:3002";
+  const quizArenaUrl = process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "https://festoryx-quiz.vercel.app";
 
   const showQuiz = org.settings?.showQuiz ?? false;
 

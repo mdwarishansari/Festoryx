@@ -2,48 +2,92 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Sparkles, ArrowRight, Users, Globe } from "lucide-react";
+import { Sparkles, ArrowRight, Users, Globe, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
-export function HomeHero() {
+interface HomeHeroProps {
+  countdownDate?: Date | string | null;
+}
+
+export function HomeHero({ countdownDate }: HomeHeroProps) {
   const [mounted, setMounted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
+  const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  return (
-    <section className="relative w-full min-h-[85vh] flex flex-col items-center justify-center overflow-hidden bg-[#030014] py-20 px-4">
-      {/* ─── BLACK HOLE / PURPLE GRAVITY BACKGROUND EFFECT ─── */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {/* Soft Ambient Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-[radial-gradient(circle,rgba(147,130,255,0.08)_0%,rgba(79,70,229,0.02)_50%,transparent_70%)] blur-[60px]" />
-        
-        {/* The Gravity Well / Accretion Disk System */}
-        {mounted && (
-          <div className="absolute top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center scale-75 md:scale-100 opacity-80">
-            {/* Outer Accretion Aura */}
-            <motion.div
-              className="absolute w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(168,85,247,0.12)_0%,rgba(99,102,241,0.04)_40%,transparent_70%)] blur-[40px]"
-              animate={{
-                scale: [1, 1.08, 1],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
+  useEffect(() => {
+    if (!countdownDate) return;
+    const target = new Date(countdownDate).getTime();
+    if (isNaN(target)) return;
 
-            {/* Rotating Conic Energy Disk (Tilted) */}
+    const tick = () => {
+      const now = new Date().getTime();
+      const difference = target - now;
+
+      if (difference <= 0) {
+        setIsExpired(true);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      } else {
+        setIsExpired(false);
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor(
+          (difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+        );
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        setTimeLeft({ days, hours, minutes, seconds });
+      }
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [countdownDate]);
+
+  return (
+    <section className="relative w-full min-h-[90vh] flex flex-col items-center justify-center overflow-hidden bg-[#030014] py-16 px-4">
+      {/* ─── SIDE-VIEW BLACK HOLE (GARGANTUA GRAVITY EFFECT) ─── */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 flex items-center justify-center">
+        {/* Soft Ambient Purple/Indigo Background Glow */}
+        <div className="absolute w-[900px] h-[900px] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.06)_0%,rgba(99,102,241,0.02)_50%,transparent_70%)] blur-[80px]" />
+        
+        {mounted && (
+          <div className="absolute top-[35%] flex items-center justify-center scale-90 md:scale-100 opacity-90 relative w-full h-[400px]">
+            
+            {/* 1. Lensed Einstein Ring (Light bent from behind, wrapping around the black hole vertically) */}
             <motion.div
-              className="absolute w-[500px] h-[500px] rounded-full opacity-60 mix-blend-screen blur-[12px]"
+              className="absolute w-[300px] h-[300px] rounded-full border-[3px] border-indigo-500/40 opacity-70 blur-[1px] shadow-[0_0_80px_rgba(99,102,241,0.5),inset_0_0_40px_rgba(139,92,246,0.3)]"
               style={{
-                background: "conic-gradient(from 0deg, transparent 20%, rgba(147, 130, 255, 0.25) 45%, rgba(236, 72, 153, 0.15) 60%, transparent 80%)",
-                transform: "rotateX(75deg) rotateY(12deg)",
+                background: "radial-gradient(circle, transparent 55%, rgba(147,130,255,0.2) 65%, rgba(236,72,153,0.1) 80%, transparent 100%)",
+                transform: "rotateY(15deg) rotateX(5deg)",
               }}
               animate={{
                 rotate: [0, 360],
+                scale: [0.97, 1.03, 0.97],
+              }}
+              transition={{
+                rotate: { duration: 35, repeat: Infinity, ease: "linear" },
+                scale: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+              }}
+            />
+
+            {/* 2. Secondary Lensed Ring (Opposite rotation, slightly tilted) */}
+            <motion.div
+              className="absolute w-[280px] h-[280px] rounded-full border border-purple-500/30 opacity-55 blur-[2px] shadow-[0_0_60px_rgba(168,85,247,0.4)]"
+              style={{
+                background: "conic-gradient(from 180deg, transparent, rgba(99,102,241,0.15), rgba(236,72,153,0.1), transparent)",
+                transform: "rotateY(-15deg) rotateX(10deg)",
+              }}
+              animate={{
+                rotate: [360, 0],
               }}
               transition={{
                 duration: 25,
@@ -52,75 +96,59 @@ export function HomeHero() {
               }}
             />
 
-            {/* Opposite Rotating Accretion Ring */}
-            <motion.div
-              className="absolute w-[460px] h-[460px] rounded-full opacity-40 mix-blend-color-dodge blur-[8px]"
-              style={{
-                background: "conic-gradient(from 180deg, transparent 15%, rgba(99, 102, 241, 0.25) 45%, rgba(139, 92, 246, 0.15) 70%, transparent 90%)",
-                transform: "rotateX(75deg) rotateY(-8deg)",
-              }}
-              animate={{
-                rotate: [360, 0],
-              }}
-              transition={{
-                duration: 18,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-            />
-
-            {/* Gravity Warp Distortion Rings */}
-            <motion.div
-              className="absolute w-[320px] h-[320px] rounded-full border border-purple-500/20 shadow-[0_0_50px_rgba(147,130,255,0.15)]"
-              style={{
-                transform: "rotateX(72deg) rotateY(10deg)",
-              }}
-              animate={{
-                scale: [0.95, 1.05, 0.95],
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-
-            {/* Neon Event Horizon Glow Ring */}
-            <motion.div
-              className="absolute w-[220px] h-[220px] rounded-full border-[1.5px] border-indigo-400/80 bg-transparent shadow-[0_0_40px_rgba(99,102,241,0.5),inset_0_0_30px_rgba(168,85,247,0.4)] blur-[0.5px]"
-              animate={{
-                scale: [0.98, 1.02, 0.98],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-
-            {/* The Black Hole Center / Singularity */}
-            <div className="absolute w-[180px] h-[180px] bg-[#030014] rounded-full shadow-[0_0_60px_rgba(0,0,0,1)] border border-white/5 z-10 flex items-center justify-center">
-              <div className="absolute inset-2 rounded-full bg-black shadow-[inset_0_0_20px_rgba(147,130,255,0.15)]" />
+            {/* 3. The Singular Dark Shadow (Event Horizon) */}
+            <div className="absolute w-[180px] h-[180px] bg-black rounded-full border border-white/10 z-10 shadow-[0_0_100px_rgba(0,0,0,1)] flex items-center justify-center">
+              {/* Inner core depth */}
+              <div className="w-[172px] h-[172px] rounded-full bg-black shadow-[inset_0_0_30px_rgba(147,130,255,0.2)]" />
             </div>
 
-            {/* Orbiting Gravitational Particles */}
-            {Array.from({ length: 12 }).map((_, i) => {
-              const angle = (i * 360) / 12;
-              const radius = 240 + Math.random() * 80;
-              const duration = 12 + Math.random() * 8;
-              const delay = -Math.random() * 15;
+            {/* 4. Side-View Accretion Disk (Passes directly in FRONT of the black hole, z-index 20) */}
+            <motion.div
+              className="absolute w-[460px] h-[34px] rounded-full bg-gradient-to-r from-transparent via-indigo-500/80 to-transparent blur-[0.5px] z-20"
+              style={{
+                boxShadow: "0 0 40px rgba(99,102,241,0.6), 0 0 80px rgba(168,85,247,0.4)",
+                transform: "rotateX(82deg) rotateY(-2deg) rotateZ(3deg)",
+              }}
+              animate={{
+                scaleY: [0.9, 1.1, 0.9],
+                rotateZ: [2, 4, 2],
+              }}
+              transition={{
+                duration: 5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+
+            {/* Secondary wider horizontal gas veil */}
+            <motion.div
+              className="absolute w-[540px] h-[48px] rounded-full bg-gradient-to-r from-transparent via-purple-500/30 to-transparent blur-[4px] z-20"
+              style={{
+                transform: "rotateX(84deg) rotateY(-2deg) rotateZ(2deg)",
+              }}
+              animate={{
+                opacity: [0.6, 0.8, 0.6],
+              }}
+              transition={{
+                duration: 8,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+
+            {/* Gravitational Dust Particles orbiting along the lens plane */}
+            {Array.from({ length: 16 }).map((_, i) => {
+              const angle = (i * 360) / 16;
+              const radius = 220 + Math.random() * 60;
+              const duration = 10 + Math.random() * 6;
+              const delay = -Math.random() * 12;
               
               return (
                 <motion.div
                   key={i}
-                  className="absolute w-1.5 h-1.5 rounded-full bg-purple-300 shadow-[0_0_8px_rgba(168,85,247,0.8)]"
-                  style={{
-                    transformOrigin: "center center",
-                  }}
+                  className="absolute w-1 h-1 rounded-full bg-indigo-200 shadow-[0_0_6px_rgba(99,102,241,0.8)] z-10"
                   animate={{
                     rotate: [0, 360],
-                    scale: [0.6, 1.1, 0.6],
                   }}
                   transition={{
                     duration,
@@ -128,30 +156,22 @@ export function HomeHero() {
                     ease: "linear",
                     delay,
                   }}
-                  // Offset the initial position
-                  custom={radius}
-                  variants={{
-                    animate: (r: number) => ({
-                      x: Math.cos((angle * Math.PI) / 180) * r,
-                      y: Math.sin((angle * Math.PI) / 180) * r * 0.25, // compressed vertically to match tilt
-                    })
-                  }}
-                  initial={{
+                  style={{
                     x: Math.cos((angle * Math.PI) / 180) * radius,
-                    y: Math.sin((angle * Math.PI) / 180) * radius * 0.25,
+                    y: Math.sin((angle * Math.PI) / 180) * radius * 0.18, // flat projection for side view
                   }}
                 />
               );
             })}
           </div>
         )}
-
-        {/* Fading bottom mask so it dissolves cleanly into the next section */}
-        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#030014] to-transparent z-1" />
+        
+        {/* Soft bottom mask fading into dark background */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#030014] to-transparent z-1" />
       </div>
 
-      {/* ─── HERO CONTENT (with Framer Motion Reveal) ─── */}
-      <div className="relative z-10 mx-auto max-w-5xl px-4 w-full text-center">
+      {/* ─── HERO CONTENT ─── */}
+      <div className="relative z-10 mx-auto max-w-5xl px-4 w-full text-center mt-6">
         {/* Sparkle Badge */}
         <motion.div 
           className="mb-6 inline-block"
@@ -166,7 +186,7 @@ export function HomeHero() {
         </motion.div>
 
         {/* Title */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <motion.h1 
             className="font-heading text-5xl font-medium tracking-tight text-white sm:text-7xl md:text-8xl select-none"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -185,11 +205,44 @@ export function HomeHero() {
           </motion.p>
         </div>
 
+        {/* ─── LIVE COUNTDOWN DISPLAY (Site-wide Countdown) ─── */}
+        {countdownDate && !isExpired && (
+          <motion.div 
+            className="mx-auto mb-12 max-w-xl rounded-2xl border border-white/5 bg-[#060317]/40 backdrop-blur-md p-5 shadow-2xl relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#9382ff] to-transparent"></div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#9382ff] mb-3">Portal Launch / Mega Event Countdown</p>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: "Days", value: timeLeft.days },
+                { label: "Hours", value: timeLeft.hours },
+                { label: "Minutes", value: timeLeft.minutes },
+                { label: "Seconds", value: timeLeft.seconds },
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col items-center justify-center rounded-xl border border-white/5 bg-[#030014]/50 py-2.5 px-2 hover:border-[#9382ff]/20 transition-all duration-300"
+                >
+                  <span className="font-heading text-xl font-bold text-white sm:text-2xl">
+                    {String(item.value).padStart(2, "0")}
+                  </span>
+                  <span className="mt-0.5 text-[8px] font-medium uppercase tracking-wider text-gray-500">
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Dual Paths Separation */}
         <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto mt-6">
           {/* PATH 1: Organizers */}
           <motion.div 
-            className="flex flex-col justify-between rounded-[20px] border border-white/5 bg-[#060317]/70 backdrop-blur-md p-8 shadow-[inset_0_0_24px_rgba(255,255,255,0.04)] relative overflow-hidden group hover:border-[#9382ff]/20 hover:bg-[#060317]/90 transition-all duration-300"
+            className="flex flex-col justify-between rounded-[20px] border border-white/5 bg-[#060317]/70 backdrop-blur-md p-8 shadow-[inset_0_0_24px_rgba(255,255,255,0.04)] relative overflow-hidden group hover:border-[#9382ff]/20 hover:bg-[#060317]/90 transition-all duration-300 animate-slide-left"
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -224,7 +277,7 @@ export function HomeHero() {
 
           {/* PATH 2: Participants */}
           <motion.div 
-            className="flex flex-col justify-between rounded-[20px] border border-white/5 bg-[#060317]/70 backdrop-blur-md p-8 shadow-[inset_0_0_24px_rgba(255,255,255,0.04)] relative overflow-hidden group hover:border-[#9382ff]/20 hover:bg-[#060317]/90 transition-all duration-300"
+            className="flex flex-col justify-between rounded-[20px] border border-white/5 bg-[#060317]/70 backdrop-blur-md p-8 shadow-[inset_0_0_24px_rgba(255,255,255,0.04)] relative overflow-hidden group hover:border-[#9382ff]/20 hover:bg-[#060317]/90 transition-all duration-300 animate-slide-right"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}

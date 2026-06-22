@@ -117,7 +117,7 @@ export function AdminEventActions({
       {/* Quiz Coordinator Link */}
       {hasQuizArena && (
         <a
-          href={`${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "http://localhost:3002"}/admin`}
+          href={`${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "https://festoryx-quiz.vercel.app"}/admin`}
           target="_blank"
           rel="noopener noreferrer"
           className="rounded-lg p-2 bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600/20 hover:text-white transition-all"

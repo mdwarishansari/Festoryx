@@ -55,7 +55,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001";
+  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || "https://festoryx-socket.onrender.com";
 
   return (
     // @ts-ignore

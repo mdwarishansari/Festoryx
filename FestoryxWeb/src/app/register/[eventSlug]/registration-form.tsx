@@ -686,9 +686,17 @@ export function RegistrationFormClient({ event, settings, formFields }: Registra
                   </div>
 
                   {event.feePerParticipant && (
-                    <div className="flex justify-between text-xs text-indigo-300/80 mb-4 pb-2 border-b border-white/5">
-                      <span>Fee Breakdown</span>
-                      <span>₹{fee} per participant × {teamSize} participant{teamSize > 1 ? 's' : ''} = ₹{totalFee}</span>
+                    <div className="flex flex-col space-y-1.5 text-xs text-indigo-200/90 mb-4 pb-3 border-b border-white/5 bg-indigo-950/30 p-3 rounded-lg">
+                      <div className="flex justify-between">
+                        <span>Fee Model:</span>
+                        <span className="font-semibold text-indigo-300">Fee × Team Size</span>
+                      </div>
+                      <div className="flex justify-between text-white font-medium items-center mt-1">
+                        <span>Calculation:</span>
+                        <span className="bg-[#030014] px-2 py-1 rounded font-mono text-indigo-400 border border-indigo-500/10">
+                          ₹{fee} × {teamSize} = ₹{totalFee}
+                        </span>
+                      </div>
                     </div>
                   )}
 

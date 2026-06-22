@@ -5,7 +5,7 @@ import { useEffect } from "react";
 export function ServerWakeup() {
   useEffect(() => {
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 30;
     const intervalMs = 3000;
     let timerId: NodeJS.Timeout;
 

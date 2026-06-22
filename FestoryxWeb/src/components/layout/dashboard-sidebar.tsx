@@ -43,7 +43,7 @@ const navItems = [
   { label: "Broadcast Email", href: "/dashboard/broadcast", icon: Send },
   { label: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
-  { label: "Quiz Arena", href: `${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "http://localhost:3002"}/admin`, icon: Flame, isExternal: true },
+  { label: "Quiz Arena", href: `${process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "https://festoryx-quiz.vercel.app"}/admin`, icon: Flame, isExternal: true },
   { label: "Export", href: "/dashboard/export", icon: Download },
   { label: "Reset System", href: "/dashboard/reset", icon: RefreshCw },
 ];
@@ -146,7 +146,7 @@ export function DashboardSidebar({ adminName, adminEmail, avatarUrl, orgName }: 
             <p className="truncate text-xs text-gray-500">{adminEmail}</p>
           </div>
         </div>
-        <SignOutButton redirectUrl="/sign-in">
+        <SignOutButton redirectUrl="/">
           <button
             className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-400 transition-all duration-200 hover:bg-red-500/10 hover:text-red-400"
           >

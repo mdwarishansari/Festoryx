@@ -5,7 +5,10 @@
 
   <p>
     <a href="https://festoryx.vercel.app" target="_blank">
-      <img src="https://img.shields.io/badge/Live%20Demo-festoryx.vercel.app-blueviolet?style=for-the-badge&logo=vercel" alt="Live Demo" />
+      <img src="https://img.shields.io/badge/Main%20SaaS-festoryx.vercel.app-blueviolet?style=for-the-badge&logo=vercel" alt="Main SaaS" />
+    </a>
+    <a href="https://festoryx-quiz.vercel.app" target="_blank">
+      <img src="https://img.shields.io/badge/Quiz%20Arena-festoryx--quiz.vercel.app-indigo?style=for-the-badge&logo=vercel" alt="Quiz Arena" />
     </a>
   </p>
 

@@ -1,9 +1,13 @@
 import { getPublishedEvents } from "@/actions/event.actions";
+import { getSiteSettings } from "@/actions/settings.actions";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { prisma } from "@/lib/prisma";
 import { CosmicBackground } from "@/components/ui/cosmic-background";
 import { HomeHero } from "@/components/landing/home-hero";
+import { ConstellationBackground } from "@/components/landing/constellation-background";
+import { ParticleStreamsBackground } from "@/components/landing/particle-streams-background";
+import { DataGridBackground } from "@/components/landing/data-grid-background";
 import { getOrgTypeEmoji } from "@/lib/utils";
 import { 
   FadeIn, 
@@ -40,7 +44,8 @@ export default async function Home() {
     activeOrgs,
     totalEvents,
     totalRegistrations,
-    totalOrganizations
+    totalOrganizations,
+    siteSettings
   ] = await Promise.all([
     getPublishedEvents(undefined, true).catch(() => []),
     prisma.organization.findMany({
@@ -60,6 +65,7 @@ export default async function Home() {
     prisma.event.count({ where: { isPublished: true } }).catch(() => 0),
     prisma.registration.count().catch(() => 0),
     prisma.organization.count({ where: { status: "ACTIVE" } }).catch(() => 0),
+    getSiteSettings().catch(() => null),
   ]);
 
   return (
@@ -69,7 +75,7 @@ export default async function Home() {
       
       <main className="flex-grow flex flex-col items-center relative z-10 w-full">
         {/* Hero Section containing the circling purple gravity / black-hole animation */}
-        <HomeHero />
+        <HomeHero countdownDate={siteSettings?.countdownDate} />
         
         {/* ─── Platform Stats ─────────────────────────────────── */}
         <section className="border-y border-white/5 bg-[#060317]/20 py-12 backdrop-blur-sm w-full">
@@ -92,7 +98,8 @@ export default async function Home() {
         </section>
 
         {/* ─── Featured Active Organizations ──────────────────── */}
-        <section className="py-24 w-full max-w-6xl mx-auto px-4 space-y-12">
+        <section className="py-24 w-full max-w-6xl mx-auto px-4 space-y-12 relative overflow-hidden">
+          <ConstellationBackground />
           <FadeIn className="text-center space-y-2">
             <span className="rounded-[32px] border border-[#9382ff]/20 bg-[#060317] px-3.5 py-1 text-[11px] font-semibold text-[#9382ff] shadow-[inset_0_-7px_11px_rgba(164,143,255,0.12)]">
               Tenants
@@ -146,7 +153,8 @@ export default async function Home() {
         </section>
 
         {/* ─── Active Public Events ──────────────────────────── */}
-        <section className="py-24 border-t border-white/5 bg-[#060317]/10 w-full">
+        <section className="py-24 border-t border-white/5 bg-[#060317]/10 w-full relative overflow-hidden">
+          <ParticleStreamsBackground />
           <div className="mx-auto max-w-6xl px-4 space-y-12">
             <FadeIn className="text-center space-y-2">
               <span className="rounded-[32px] border border-[#9382ff]/20 bg-[#060317] px-3.5 py-1 text-[11px] font-semibold text-[#9382ff] shadow-[inset_0_-7px_11px_rgba(164,143,255,0.12)]">
@@ -246,7 +254,7 @@ export default async function Home() {
               </div>
 
               <a 
-                href="http://localhost:3002"
+                href={process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "https://festoryx-quiz.vercel.app"}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-[5px] border border-[#9382ff]/30 bg-[#9382ff]/10 hover:bg-[#9382ff]/20 px-5 text-xs font-semibold text-[#9382ff] transition-all"
@@ -292,7 +300,8 @@ export default async function Home() {
         </section>
 
         {/* ─── Modules & Features ────────────────────────────── */}
-        <section className="py-24 border-t border-white/5 bg-[#060317]/10 w-full">
+        <section className="py-24 border-t border-white/5 bg-[#060317]/10 w-full relative overflow-hidden">
+          <DataGridBackground />
           <div className="mx-auto max-w-6xl px-4 space-y-12">
             <FadeIn className="text-center space-y-2">
               <span className="rounded-[32px] border border-[#9382ff]/20 bg-[#060317] px-3.5 py-1 text-[11px] font-semibold text-[#9382ff] shadow-[inset_0_-7px_11px_rgba(164,143,255,0.12)]">

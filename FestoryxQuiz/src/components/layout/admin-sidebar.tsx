@@ -28,7 +28,7 @@ const navItems = [
   { label: "Question Bank", href: "/admin/questions", icon: HelpCircle },
   { label: "Live Sessions", href: "/admin/sessions", icon: Play },
   { label: "Platform Settings", href: "/admin/settings", icon: Settings },
-  { label: "Back to Main Site", href: process.env.NEXT_PUBLIC_FESTORYX_URL || "http://localhost:3000", icon: Globe, isExternal: true },
+  { label: "Back to Main Site", href: process.env.NEXT_PUBLIC_FESTORYX_URL || "https://festoryx.vercel.app", icon: Globe, isExternal: true },
 ];
 
 export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
@@ -134,7 +134,7 @@ export function AdminSidebar({ adminName, adminEmail }: AdminSidebarProps) {
           </div>
         </div>
         <button
-          onClick={() => signOut({ redirectUrl: "/" })}
+          onClick={() => signOut({ redirectUrl: process.env.NEXT_PUBLIC_FESTORYX_URL || "https://festoryx.vercel.app" })}
           className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-gray-400 transition-all duration-200 hover:bg-red-500/10 hover:text-red-400"
         >
           <LogOut className="h-4 w-4" />

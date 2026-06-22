@@ -10,7 +10,7 @@ const navLinks = [
   { href: "/events", label: "Discover Events" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact Us" },
-  { href: "http://localhost:3002", label: "Quiz Arena", isExternal: true },
+  { href: process.env.NEXT_PUBLIC_QUIZ_ARENA_URL || "https://festoryx-quiz.vercel.app", label: "Quiz Arena", isExternal: true },
 ];
 
 export function Header() {

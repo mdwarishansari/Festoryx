@@ -57,14 +57,14 @@ export default async function AdminSettingsPage() {
             <div>
               <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold block">Frontend Local URL</span>
               <div className="bg-black/25 border border-white/5 p-2 rounded-lg text-xs font-mono text-indigo-300 mt-1">
-                {process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3002"}
+                {process.env.NEXT_PUBLIC_SITE_URL || "https://festoryx-quiz.vercel.app"}
               </div>
             </div>
 
             <div>
               <span className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold block">Build Environment Socket URL</span>
               <div className="bg-black/25 border border-white/5 p-2 rounded-lg text-xs font-mono text-purple-300 mt-1">
-                {process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3001"}
+                {process.env.NEXT_PUBLIC_SOCKET_URL || "https://festoryx-socket.onrender.com"}
               </div>
             </div>
 

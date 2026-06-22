@@ -9,6 +9,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { CosmicBackground } from "@/components/ui/cosmic-background";
 import type { Metadata } from "next";
+import { SearchBar } from "@/components/events/search-bar";
+import { FilterPanel } from "@/components/events/filter-panel";
+import { DeepSearchPanel } from "@/components/events/deep-search-panel";
 
 export const metadata: Metadata = {
   title: "Tech Events & Hackathons List | Festoryx Competitions",
@@ -139,101 +142,12 @@ export default async function EventsPage({ searchParams }: PageProps) {
             </div>
           </div>
 
-          {/* Search and Filters Panel */}
-          <form method="GET" action="/events" className="mt-8 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-6 items-end bg-[#060317] border border-white/5 p-4 rounded-xl shadow-[inset_0_0_12px_rgba(255,255,255,0.02)]">
-            {/* Simple Search Input */}
-            <div className="flex flex-col space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Simple Search</label>
-              <input
-                type="text"
-                name="q"
-                defaultValue={query}
-                placeholder="Name or short summary..."
-                className="w-full px-3 py-2 bg-[#030014] border border-white/10 rounded-lg text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#9382ff]"
-              />
-            </div>
-
-            {/* Advanced Search Input */}
-            <div className="flex flex-col space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider font-semibold text-indigo-400">Deep Search (Tokens)</label>
-              <input
-                type="text"
-                name="adv_q"
-                defaultValue={advQuery}
-                placeholder="Deep rules, venue or prizes..."
-                className="w-full px-3 py-2 bg-[#030014] border border-indigo-500/25 rounded-lg text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#9382ff] focus:ring-1 focus:ring-[#9382ff]"
-              />
-            </div>
-
-            {/* Organization Filter */}
-            <div className="flex flex-col space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Host Organization</label>
-              <select
-                name="org"
-                defaultValue={orgSlug}
-                className="w-full px-3 py-2 bg-[#030014] border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-[#9382ff]"
-              >
-                <option value="ALL">All Hosts</option>
-                {activeOrgs.map((org) => (
-                  <option key={org.slug} value={org.slug}>
-                    {org.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Format Filter */}
-            <div className="flex flex-col space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Event Format</label>
-              <select
-                name="format"
-                defaultValue={formatFilter}
-                className="w-full px-3 py-2 bg-[#030014] border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-[#9382ff]"
-              >
-                <option value="ALL">All Formats</option>
-                <option value="Offline">Offline</option>
-                <option value="Online">Online</option>
-                <option value="Hybrid">Hybrid</option>
-              </select>
-            </div>
-
-            {/* Participation Type Filter */}
-            <div className="flex flex-col space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Participation</label>
-              <select
-                name="type"
-                defaultValue={filterType}
-                className="w-full px-3 py-2 bg-[#030014] border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-[#9382ff]"
-              >
-                <option value="ALL">All Toggles</option>
-                <option value="SOLO">Solo Only</option>
-                <option value="TEAM">Team Only</option>
-                <option value="BOTH">Solo & Team</option>
-              </select>
-            </div>
-
-            {/* Date / Status Filter */}
-            <div className="flex flex-col space-y-1.5">
-              <label className="text-[10px] uppercase tracking-wider font-semibold text-gray-400">Timeline</label>
-              <div className="flex gap-2">
-                <select
-                  name="date"
-                  defaultValue={dateFilter}
-                  className="flex-grow px-3 py-2 bg-[#030014] border border-white/10 rounded-lg text-xs text-white focus:outline-none focus:border-[#9382ff]"
-                >
-                  <option value="ALL">All Dates</option>
-                  <option value="UPCOMING">Upcoming Only</option>
-                  <option value="PAST">Past Events</option>
-                </select>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold transition-colors"
-                >
-                  Apply
-                </button>
-              </div>
-            </div>
-          </form>
+          {/* Redesigned Search & Filters System */}
+          <div className="mt-8 space-y-6">
+            <SearchBar />
+            <FilterPanel activeOrgs={activeOrgs} />
+            <DeepSearchPanel />
+          </div>
 
           {/* Grid list */}
           {paginatedEvents.length === 0 ? (

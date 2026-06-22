@@ -17,7 +17,7 @@ export function SocketStatusIndicator({ isAdmin = false }: SocketStatusIndicator
     // Resolve URL from window.__SOCKET_URL__ or process.env
     const url = (typeof window !== "undefined" && (window as any).__SOCKET_URL__) 
       || process.env.NEXT_PUBLIC_SOCKET_URL 
-      || "http://localhost:3001";
+      || "https://festoryx-socket.onrender.com";
     
     setSocketUrl(url);
     if (url.includes("onrender.com") || url.includes("render")) {

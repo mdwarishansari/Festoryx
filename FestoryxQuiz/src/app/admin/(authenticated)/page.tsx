@@ -272,7 +272,7 @@ export default async function AdminDashboardPage() {
                 Distribute the URL below to students so they can join live games on their mobile devices:
               </p>
               <div className="bg-black/30 border border-white/10 px-3 py-2 rounded-lg font-mono text-xs text-indigo-300 truncate">
-                {process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3002"}/join
+                {process.env.NEXT_PUBLIC_SITE_URL || "https://festoryx-quiz.vercel.app"}/join
               </div>
             </div>
           </div>
@@ -403,15 +403,15 @@ export default async function AdminDashboardPage() {
                 </div>
                 <div>
                   <span className="font-semibold text-gray-300 font-mono">NEXT_PUBLIC_SOCKET_URL</span>
-                  <p className="text-gray-500">WebSocket URL pointing to local server: <code className="font-mono bg-white/5 px-1 py-0.5 rounded text-[10px]">http://localhost:3001</code></p>
+                  <p className="text-gray-500">WebSocket URL pointing to server: <code className="font-mono bg-white/5 px-1 py-0.5 rounded text-[10px]">https://festoryx-socket.onrender.com</code></p>
                 </div>
                 <div>
                   <span className="font-semibold text-gray-300 font-mono">NEXT_PUBLIC_SITE_URL</span>
-                  <p className="text-gray-500">Frontend server URL: <code className="font-mono bg-white/5 px-1 py-0.5 rounded text-[10px]">http://localhost:3002</code></p>
+                  <p className="text-gray-500">Frontend server URL: <code className="font-mono bg-white/5 px-1 py-0.5 rounded text-[10px]">https://festoryx-quiz.vercel.app</code></p>
                 </div>
                 <div>
                   <span className="font-semibold text-gray-300 font-mono">NEXT_PUBLIC_FESTORYX_URL</span>
-                  <p className="text-gray-500">Point back to main Festoryx portal for integration: <code className="font-mono bg-white/5 px-1 py-0.5 rounded text-[10px]">http://localhost:3000</code></p>
+                  <p className="text-gray-500">Point back to main Festoryx portal for integration: <code className="font-mono bg-white/5 px-1 py-0.5 rounded text-[10px]">https://festoryx.vercel.app</code></p>
                 </div>
               </div>
             </div>
@@ -461,7 +461,7 @@ export default async function AdminDashboardPage() {
                   npm run dev
                 </div>
               </div>
-              <p>Verify that both servers are online. The Next.js frontend is accessible at <a href="http://localhost:3002" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">http://localhost:3002</a>.</p>
+              <p>Verify that both servers are online. The Next.js frontend is accessible at <a href="https://festoryx-quiz.vercel.app" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">https://festoryx-quiz.vercel.app</a>.</p>
             </div>
           </details>
         </div>

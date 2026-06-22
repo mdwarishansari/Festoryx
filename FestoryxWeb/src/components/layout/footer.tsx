@@ -58,11 +58,11 @@ const quickLinks = [
 
 export async function Footer() {
   const settings = await getSettings();
-  const footerLogo = settings?.footerLogoUrl || "/Logo.gif";
-  const footerText = settings?.footerText || `© ${new Date().getFullYear()} Festoryx. All rights reserved. Built with ❤️ for innovators.`;
-  const contactEmail = settings?.contactEmail || "contact@festoryx.tech";
-  const contactPhone = settings?.contactPhone || "+91 98765 43210";
-  const contactAddress = settings?.contactAddress || "University Campus";
+  const footerLogo = settings?.footerLogoUrl;
+  const footerText = settings?.footerText;
+  const contactEmail = settings?.contactEmail;
+  const contactPhone = settings?.contactPhone;
+  const contactAddress = settings?.contactAddress;
 
   const socialLinksData = settings?.socialLinks as any;
   const instagram = socialLinksData?.instagram || "";
@@ -87,21 +87,28 @@ export async function Footer() {
           {/* Column 1: Logo & Description */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2 group w-fit">
-              <div className="h-15 w-15 overflow-hidden rounded-full border border-white/20 transition-all duration-200 group-hover:border-indigo-400">
-                <img
-                  src={footerLogo}
-                  alt="Festoryx Logo"
-                  className="h-full w-full object-cover rounded-full"
-                />
-              </div>
+              {footerLogo ? (
+                <div className="h-15 w-15 overflow-hidden rounded-full border border-white/20 transition-all duration-200 group-hover:border-indigo-400">
+                  <img
+                    src={footerLogo}
+                    alt="Festoryx Logo"
+                    className="h-full w-full object-cover rounded-full"
+                  />
+                </div>
+              ) : (
+                <div className="h-10 w-10 overflow-hidden rounded-full border border-white/20 transition-all duration-200 group-hover:border-indigo-400 bg-indigo-500/10 flex items-center justify-center">
+                  <span className="text-white text-xs font-bold font-heading">F</span>
+                </div>
+              )}
               <span className="gradient-text font-heading text-2xl font-bold">
                 Festoryx
               </span>
             </Link>
-            <p className="max-w-xs text-sm leading-relaxed text-gray-400">
-              The premier university event and hackathon platform.
-              Innovate, compete, and build the future with Festoryx.
-            </p>
+            {settings?.tagline && (
+              <p className="max-w-xs text-sm leading-relaxed text-gray-400">
+                {settings.tagline}
+              </p>
+            )}
           </div>
 
           {/* Column 2: Quick Links */}
@@ -124,25 +131,33 @@ export async function Footer() {
           </div>
 
           {/* Column 3: Contact */}
-          <div>
-            <h3 className="mb-4 font-heading text-sm font-semibold uppercase tracking-wider text-gray-300">
-              Contact
-            </h3>
-            <ul className="space-y-3">
-              <li className="flex items-center gap-2 text-sm text-gray-400">
-                <Mail className="h-4 w-4 text-indigo-400" />
-                <span>{contactEmail}</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm text-gray-400">
-                <Phone className="h-4 w-4 text-indigo-400" />
-                <span>{contactPhone}</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm text-gray-400">
-                <MapPin className="h-4 w-4 text-indigo-400" />
-                <span>{contactAddress}</span>
-              </li>
-            </ul>
-          </div>
+          {(contactEmail || contactPhone || contactAddress) && (
+            <div>
+              <h3 className="mb-4 font-heading text-sm font-semibold uppercase tracking-wider text-gray-300">
+                Contact
+              </h3>
+              <ul className="space-y-3">
+                {contactEmail && (
+                  <li className="flex items-center gap-2 text-sm text-gray-400">
+                    <Mail className="h-4 w-4 text-indigo-400" />
+                    <span>{contactEmail}</span>
+                  </li>
+                )}
+                {contactPhone && (
+                  <li className="flex items-center gap-2 text-sm text-gray-400">
+                    <Phone className="h-4 w-4 text-indigo-400" />
+                    <span>{contactPhone}</span>
+                  </li>
+                )}
+                {contactAddress && (
+                  <li className="flex items-center gap-2 text-sm text-gray-400">
+                    <MapPin className="h-4 w-4 text-indigo-400" />
+                    <span>{contactAddress}</span>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
         </div>
 
         {/* Social Links */}
@@ -164,11 +179,13 @@ export async function Footer() {
         )}
 
         {/* Copyright */}
-        <div className="mt-8 text-center border-t border-white/5 pt-6">
-          <p className="text-xs text-gray-500">
-            {footerText}
-          </p>
-        </div>
+        {footerText && (
+          <div className="mt-8 text-center border-t border-white/5 pt-6">
+            <p className="text-xs text-gray-500">
+              {footerText}
+            </p>
+          </div>
+        )}
       </div>
     </footer>
   );

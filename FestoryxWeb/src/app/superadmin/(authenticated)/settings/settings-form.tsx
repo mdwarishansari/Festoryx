@@ -234,6 +234,28 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   placeholder="Innovate. Compete. Excel."
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300">Countdown Date (IST)</label>
+                <div className="mt-2 flex gap-2">
+                  <input
+                    type="datetime-local"
+                    {...register("countdownDate")}
+                    className="flex-1 rounded-xl border border-white/10 bg-[#16213e] px-4 py-3 text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleResetCountdown}
+                    disabled={isResettingCountdown}
+                    title="Reset / Clear countdown"
+                    className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-rose-500/10 px-3 py-2 text-xs font-semibold text-rose-400 transition-all hover:bg-rose-500/20 hover:border-rose-500/30 disabled:opacity-50"
+                  >
+                    {isResettingCountdown ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}
+                    Reset
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-gray-400">Countdown timer target date and time. Click Reset to clear it.</p>
+              </div>
             </div>
 
 
