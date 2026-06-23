@@ -1,33 +1,113 @@
-import test from "node:test";
-import assert from "node:assert";
-import { slugify, truncateText, getInitials, getOrgTypeEmoji, getPublicIdFromUrl } from "./utils";
+import {
+  slugify,
+  truncateText,
+  getInitials,
+  getOrgTypeEmoji,
+  getPublicIdFromUrl,
+  cn,
+  formatCurrency,
+  serializePrisma,
+  formatToISTInputString,
+  formatDateTimeIST,
+  formatDateIST,
+  parseToISTDate
+} from "./utils";
 
-test("slugify matches expected output", () => {
-  assert.strictEqual(slugify("Hello World!"), "hello-world");
-  assert.strictEqual(slugify("Festoryx - OS & Quiz Arena"), "festoryx---os-quiz-arena");
-  assert.strictEqual(slugify("   Trim-Me   "), "trim-me");
+describe("cn utility", () => {
+  it("combines class names correctly", () => {
+    expect(cn("bg-red-500", "text-white")).toContain("bg-red-500 text-white");
+  });
 });
 
-test("truncateText cuts off and adds ellipses", () => {
-  assert.strictEqual(truncateText("Hello World", 5), "Hello...");
-  assert.strictEqual(truncateText("Short", 10), "Short");
+describe("slugify", () => {
+  it("matches expected output", () => {
+    expect(slugify("Hello World!")).toBe("hello-world");
+    expect(slugify("Festoryx - OS & Quiz Arena")).toBe("festoryx---os-quiz-arena");
+    expect(slugify("   Trim-Me   ")).toBe("trim-me");
+  });
 });
 
-test("getInitials returns uppercase first letters", () => {
-  assert.strictEqual(getInitials("Md Warish Ansari"), "MW");
-  assert.strictEqual(getInitials("John Doe"), "JD");
-  assert.strictEqual(getInitials("Single"), "S");
+describe("truncateText", () => {
+  it("cuts off and adds ellipses", () => {
+    expect(truncateText("Hello World", 5)).toBe("Hello...");
+    expect(truncateText("Short", 10)).toBe("Short");
+  });
 });
 
-test("getOrgTypeEmoji returns correct emoji", () => {
-  assert.strictEqual(getOrgTypeEmoji("college"), "🎓");
-  assert.strictEqual(getOrgTypeEmoji("company"), "💼");
-  assert.strictEqual(getOrgTypeEmoji("community"), "🌐");
-  assert.strictEqual(getOrgTypeEmoji("club"), "👥");
-  assert.strictEqual(getOrgTypeEmoji("unknown"), "🏢");
+describe("getInitials", () => {
+  it("returns uppercase first letters", () => {
+    expect(getInitials("Md Warish Ansari")).toBe("MW");
+    expect(getInitials("John Doe")).toBe("JD");
+    expect(getInitials("Single")).toBe("S");
+  });
 });
 
-test("getPublicIdFromUrl parses Cloudinary URL correctly", () => {
-  const url = "https://res.cloudinary.com/demo/image/upload/v1570975200/sample.jpg";
-  assert.strictEqual(getPublicIdFromUrl(url), "sample");
+describe("getOrgTypeEmoji", () => {
+  it("returns correct emoji", () => {
+    expect(getOrgTypeEmoji("college")).toBe("🎓");
+    expect(getOrgTypeEmoji("company")).toBe("💼");
+    expect(getOrgTypeEmoji("community")).toBe("🌐");
+    expect(getOrgTypeEmoji("club")).toBe("👥");
+    expect(getOrgTypeEmoji("unknown")).toBe("🏢");
+  });
+});
+
+describe("getPublicIdFromUrl", () => {
+  it("parses Cloudinary URL correctly", () => {
+    const url = "https://res.cloudinary.com/demo/image/upload/v1570975200/sample.jpg";
+    expect(getPublicIdFromUrl(url)).toBe("sample");
+    expect(getPublicIdFromUrl(null)).toBeNull();
+    expect(getPublicIdFromUrl("invalid-url")).toBeNull();
+  });
+});
+
+describe("formatCurrency", () => {
+  it("formats standard numbers to INR", () => {
+    expect(formatCurrency(100)).toContain("100");
+  });
+});
+
+describe("serializePrisma", () => {
+  it("serializes dates and decimals", () => {
+    const dateObj = new Date("2026-06-23T12:00:00Z");
+    const testData = {
+      id: "1",
+      amount: { toNumber: () => 150.5 },
+      createdAt: dateObj,
+      nested: {
+        updatedAt: dateObj,
+      },
+    };
+    const result = serializePrisma(testData);
+    expect(result.amount).toBe(150.5);
+    expect(result.createdAt).toEqual(dateObj);
+    expect(result.nested.updatedAt).toEqual(dateObj);
+  });
+});
+
+describe("IST Date helpers", () => {
+  it("formats to IST input string", () => {
+    const d = new Date("2026-06-23T12:00:00Z"); // 12:00 UTC = 17:30 IST
+    const str = formatToISTInputString(d);
+    expect(str).toBe("2026-06-23T17:30");
+    expect(formatToISTInputString(null)).toBe("");
+  });
+
+  it("formats date to IST string format", () => {
+    const d = new Date("2026-06-23T12:00:00Z");
+    expect(formatDateIST(d)).toContain("2026");
+    expect(formatDateIST(null)).toBe("");
+  });
+
+  it("formats date & time to IST string format", () => {
+    const d = new Date("2026-06-23T12:00:00Z");
+    expect(formatDateTimeIST(d)).toContain("2026");
+    expect(formatDateTimeIST(null)).toBe("");
+  });
+
+  it("parses IST date correctly", () => {
+    const d = parseToISTDate("2026-06-23");
+    expect(d).not.toBeNull();
+    expect(parseToISTDate(null)).toBeNull();
+  });
 });
