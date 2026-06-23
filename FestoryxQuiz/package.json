@@ -8,7 +8,8 @@
     "start": "next start -p 3002",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "socket": "tsx socket-server/index.ts"
+    "socket": "tsx socket-server/index.ts",
+    "test": "tsx --test src/lib/utils.test.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.12.0",

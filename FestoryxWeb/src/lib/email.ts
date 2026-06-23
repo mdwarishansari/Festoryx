@@ -57,7 +57,7 @@ export async function getEmailBranding(organizationId?: string, isPlatformOnly: 
     }
 
     // Platform settings fallback
-    let siteSettings = await prisma.siteSettings.findUnique({
+    const siteSettings = await prisma.siteSettings.findUnique({
       where: { id: "global" },
     });
     if (!siteSettings) {

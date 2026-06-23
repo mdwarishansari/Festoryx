@@ -27,7 +27,7 @@ interface WinnersFormProps {
 }
 
 export function WinnersForm({ events }: WinnersFormProps) {
-  const [selectedEventId, setSelectedEventId] = useState<string>("");
+  const [selectedEventId, setSelectedEventId] = useState<string>(events[0]?.id || "");
   const [isPending, startTransition] = useTransition();
 
   const [winner1, setWinner1] = useState<string>("");
@@ -37,23 +37,19 @@ export function WinnersForm({ events }: WinnersFormProps) {
   const currentEvent = events.find((e) => e.id === selectedEventId);
 
   useEffect(() => {
-    if (currentEvent) {
-      setWinner1(currentEvent.winner1Id || "");
-      setWinner2(currentEvent.winner2Id || "");
-      setWinner3(currentEvent.winner3Id || "");
-    } else {
-      setWinner1("");
-      setWinner2("");
-      setWinner3("");
-    }
+    const timer = setTimeout(() => {
+      if (currentEvent) {
+        setWinner1(currentEvent.winner1Id || "");
+        setWinner2(currentEvent.winner2Id || "");
+        setWinner3(currentEvent.winner3Id || "");
+      } else {
+        setWinner1("");
+        setWinner2("");
+        setWinner3("");
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [selectedEventId, currentEvent]);
-
-  // Set default event if none is selected
-  useEffect(() => {
-    if (events.length > 0 && !selectedEventId) {
-      setSelectedEventId(events[0].id);
-    }
-  }, [events, selectedEventId]);
 
   const handleSave = () => {
     if (!selectedEventId) return;

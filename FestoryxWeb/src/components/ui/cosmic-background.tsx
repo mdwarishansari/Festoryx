@@ -25,7 +25,10 @@ export function CosmicBackground() {
       duration: Math.random() * 4 + 3,
       delay: Math.random() * 5,
     }));
-    setStars(generatedStars);
+    const timer = setTimeout(() => {
+      setStars(generatedStars);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   return (

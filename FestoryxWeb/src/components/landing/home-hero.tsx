@@ -20,7 +20,10 @@ export function HomeHero({ countdownDate }: HomeHeroProps) {
   const [isExpired, setIsExpired] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
