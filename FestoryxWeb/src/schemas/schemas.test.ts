@@ -23,6 +23,36 @@ describe("schemas validation", () => {
       });
       expect(result.success).toBe(false);
     });
+
+    it("transforms optional date fields and accepts extended config", () => {
+      const result = eventSchema.safeParse({
+        name: "Hackathon",
+        slug: "hackathon-2026",
+        description: "A competitive coding hackathon event.",
+        participationType: "TEAM",
+        eventDate: "2026-12-01",
+        lastRegistrationDate: "",
+        problemReleaseTime: "invalid-date",
+        visibility: "UNLISTED",
+        modules: ["QUIZ_ARENA"],
+        formFields: [
+          {
+            fieldName: "email",
+            label: "Email",
+            type: "email",
+            isRequired: true,
+            isVisible: true,
+          },
+        ],
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.eventDate).toBeInstanceOf(Date);
+        expect(result.data.lastRegistrationDate).toBeUndefined();
+        expect(result.data.problemReleaseTime).toBeUndefined();
+        expect(result.data.visibility).toBe("UNLISTED");
+      }
+    });
   });
 
   describe("registrationSchema", () => {
@@ -32,6 +62,15 @@ describe("schemas validation", () => {
         email: "john@example.com",
         phone: "1234567890",
         collegeName: "Test University",
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts team member payloads via passthrough", () => {
+      const result = registrationSchema.safeParse({
+        teamName: "Alpha Coders",
+        teamMembers: [{ name: "Alice", email: "alice@example.com" }],
+        customField: "extra",
       });
       expect(result.success).toBe(true);
     });

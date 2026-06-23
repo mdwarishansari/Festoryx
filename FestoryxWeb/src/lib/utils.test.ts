@@ -10,7 +10,10 @@ import {
   formatToISTInputString,
   formatDateTimeIST,
   formatDateIST,
-  parseToISTDate
+  parseToISTDate,
+  formatDate,
+  formatDateTime,
+  formatRelativeTime,
 } from "./utils";
 
 describe("cn utility", () => {
@@ -45,7 +48,9 @@ describe("getInitials", () => {
 describe("getOrgTypeEmoji", () => {
   it("returns correct emoji", () => {
     expect(getOrgTypeEmoji("college")).toBe("🎓");
+    expect(getOrgTypeEmoji("university")).toBe("🎓");
     expect(getOrgTypeEmoji("company")).toBe("💼");
+    expect(getOrgTypeEmoji("startup")).toBe("💼");
     expect(getOrgTypeEmoji("community")).toBe("🌐");
     expect(getOrgTypeEmoji("club")).toBe("👥");
     expect(getOrgTypeEmoji("unknown")).toBe("🏢");
@@ -58,6 +63,14 @@ describe("getPublicIdFromUrl", () => {
     expect(getPublicIdFromUrl(url)).toBe("sample");
     expect(getPublicIdFromUrl(null)).toBeNull();
     expect(getPublicIdFromUrl("invalid-url")).toBeNull();
+  });
+
+  it("handles URLs without version segment and parse errors", () => {
+    const noVersion = "https://res.cloudinary.com/demo/image/upload/folder/asset.png";
+    expect(getPublicIdFromUrl(noVersion)).toBe("folder/asset");
+
+    const malformed = "https://res.cloudinary.com/demo/image/upload/";
+    expect(getPublicIdFromUrl(malformed)).toBe("");
   });
 });
 
@@ -82,6 +95,26 @@ describe("serializePrisma", () => {
     expect(result.amount).toBe(150.5);
     expect(result.createdAt).toEqual(dateObj);
     expect(result.nested.updatedAt).toEqual(dateObj);
+  });
+
+  it("handles null, arrays, and primitives", () => {
+    expect(serializePrisma(null)).toBeNull();
+    expect(serializePrisma(undefined)).toBeUndefined();
+    expect(serializePrisma("hello")).toBe("hello");
+    expect(serializePrisma([{ amount: { toNumber: () => 10 } }])).toEqual([{ amount: 10 }]);
+  });
+});
+
+describe("date formatting wrappers", () => {
+  it("delegates formatDate and formatDateTime to IST helpers", () => {
+    const d = new Date("2026-06-23T12:00:00Z");
+    expect(formatDate(d)).toContain("2026");
+    expect(formatDateTime(d)).toContain("2026");
+  });
+
+  it("returns relative time strings", () => {
+    const recent = new Date(Date.now() - 60_000);
+    expect(formatRelativeTime(recent)).toMatch(/minute|second|ago/i);
   });
 });
 
@@ -109,5 +142,15 @@ describe("IST Date helpers", () => {
     const d = parseToISTDate("2026-06-23");
     expect(d).not.toBeNull();
     expect(parseToISTDate(null)).toBeNull();
+
+    const withTime = parseToISTDate("2026-06-23T10:30");
+    expect(withTime).not.toBeNull();
+    expect(parseToISTDate("invalid-date")).toBeNull();
+  });
+
+  it("returns empty strings for invalid IST input dates", () => {
+    expect(formatToISTInputString("invalid")).toBe("");
+    expect(formatDateIST("invalid")).toBe("");
+    expect(formatDateTimeIST("invalid")).toBe("");
   });
 });
