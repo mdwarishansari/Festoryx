@@ -10,7 +10,10 @@
     "postinstall": "prisma generate",
     "vercel-build": "prisma generate && DATABASE_URL=${DIRECT_URL:-$DATABASE_URL} prisma migrate deploy && next build",
     "seed": "tsx prisma/seed.ts",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "test:unit": "jest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:report": "playwright show-report playwright-report"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -42,6 +45,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
